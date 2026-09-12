@@ -5,7 +5,8 @@
  *  - POST /api/ai/chat        → proxy para o Ollama com resposta em stream (SSE)
  *
  * Uso: node server.js   (abre em http://localhost:8000)
- * Zero dependências (Node.js >= 18).
+ * Requer Node.js 22+ (usa node:sqlite e scrypt nativos) - recomendado Node 24 LTS.
+ * Zero dependências.
  */
 
 const http = require('http');
@@ -35,11 +36,26 @@ const MIME = {
   '.map': 'application/json'
 };
 
+/* Restrição de CORS: só mesma origem (localhost) ou origens listadas em CORS_ORIGIN. */
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN || '')
+  .split(',').map(s => s.trim()).filter(Boolean);
+
+function corsOrigin(req) {
+  const o = req.headers['origin'];
+  if (!o) return null;
+  try {
+    const u = new URL(o);
+    const host = req.headers['host'] || '';
+    if (u.host === host) return o;
+    if (ALLOWED_ORIGINS.includes(o)) return o;
+  } catch (e) {}
+  return null;
+}
+
 function sendJson(res, status, payload) {
   const body = JSON.stringify(payload);
   res.writeHead(status, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*'
+    'Content-Type': 'application/json; charset=utf-8'
   });
   res.end(body);
 }
@@ -289,17 +305,39 @@ function logAudit(entries) {
 
 /* =========================================================================
  * AUTENTICAÇÃO (auth básica no servidor)
- *  - Senhas: SHA-256 em hex (compatível com o hash usado no cliente).
+ *  - Senhas: scrypt com sal (formato scrypt$sal$hash). Hashes antigos
+ *    (SHA-256) são aceitos uma única vez e migrados no primeiro login.
  *  - Sessões: tabela `sessions` (token aleatório, expiração de 12h).
+ *  - Rate limit de login: 5 tentativas / 15 min por usuário+IP.
  *  - Isolamento: PUT /api/data só grava chaves da unidade do usuário
  *    (ou chaves globais da plataforma). O papel 'nacional' (visão geral)
- *    não tem restrição de escopo.
+ *    não tem restrição de escopo. GET /api/data só devolve chaves da
+ *    própria unidade + globais permitidas.
  * ========================================================================= */
 
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
 function hashSenha(text) {
+  // Mantido para validar/migrar hashes antigos (SHA-256) criados por versões anteriores.
   return crypto.createHash('sha256').update(String(text)).digest('hex');
+}
+
+function scryptHash(text) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(String(text), salt, 32).toString('hex');
+  return 'scrypt$' + salt + '$' + hash;
+}
+
+function scryptVerify(text, stored) {
+  if (typeof stored !== 'string') return false;
+  const parts = stored.split('$');
+  if (parts.length !== 3 || parts[0] !== 'scrypt') return false;
+  try {
+    const actual = crypto.scryptSync(String(text), parts[1], 32).toString('hex');
+    return crypto.timingSafeEqual(Buffer.from(actual, 'hex'), Buffer.from(parts[2], 'hex'));
+  } catch (e) {
+    return false;
+  }
 }
 
 function slugify(s) {
@@ -313,6 +351,63 @@ const GLOBAL_WRITE_KEYS = new Set([
   'senai_config_data', 'senai_materiais_data', 'senai_comunicados_data',
   'senai_calendario_data', 'senai_classroom_data'
 ]);
+
+// Chaves globais legíveis por qualquer usuário autenticado.
+// IMPORTANTE: senai_users_data NUNCA sai na leitura (contém hashes de senha).
+const GLOBAL_READ_KEYS = new Set([
+  'senai_unidades_data', 'senai_cursos_data',
+  'senai_catalogo_unidades', 'senai_catalogo_turmas',
+  'senai_config_data', 'senai_materiais_data', 'senai_comunicados_data',
+  'senai_calendario_data', 'senai_classroom_data'
+]);
+
+function keyReadableFor(key, ses) {
+  if (!key) return false;
+  if (ses.role === 'nacional') return true;
+  if (key === 'senai_users_data') return false;
+  if (GLOBAL_READ_KEYS.has(key)) return true;
+  const u = slugify(ses.unidadeId);
+  if (!u) return false;
+  return key.indexOf('__' + u + '__') !== -1 || key.endsWith('__' + u);
+}
+
+// Rate limit simples de login (anti força bruta): 5 tentativas / 15 min por usuário+IP.
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_ATTEMPTS = 5;
+const loginAttempts = new Map();
+
+function loginKey(login, req) {
+  return String(login || '').trim().toLowerCase() + '|' + (req.socket.remoteAddress || '');
+}
+
+function loginBlocked(key) {
+  const rec = loginAttempts.get(key);
+  if (!rec) return null;
+  if (rec.blockedUntil && rec.blockedUntil > Date.now()) {
+    return Math.ceil((rec.blockedUntil - Date.now()) / 1000);
+  }
+  if (rec.blockedUntil && rec.blockedUntil <= Date.now()) loginAttempts.delete(key);
+  return null;
+}
+
+function recordLoginFailure(key) {
+  const now = Date.now();
+  const rec = loginAttempts.get(key);
+  if (!rec || now - (rec.firstAt || now) > LOGIN_WINDOW_MS) {
+    loginAttempts.set(key, { firstAt: now, count: 1, blockedUntil: 0 });
+    return;
+  }
+  rec.count += 1;
+  if (rec.count >= LOGIN_MAX_ATTEMPTS) {
+    rec.blockedUntil = now + LOGIN_WINDOW_MS;
+    rec.count = 0;
+  }
+  loginAttempts.set(key, rec);
+}
+
+function clearLoginAttempts(key) {
+  loginAttempts.delete(key);
+}
 
 function seedServerUsers() {
   const existing = kvGet('senai_users_data');
@@ -329,7 +424,7 @@ function seedServerUsers() {
       const u = idx >= 0 ? existing[idx] : null;
       if (u && (!u.passwordHash || !u.unidadeId)) {
         if (!u.unidadeId) u.unidadeId = du.unidadeId || '';
-        if (!u.passwordHash) u.passwordHash = hashSenha(du.passwordPlain);
+        if (!u.passwordHash) u.passwordHash = scryptHash(du.passwordPlain);
         if (!u.unidade) u.unidade = du.unidade || '';
         changed = true;
       }
@@ -347,7 +442,7 @@ function seedServerUsers() {
     curso: du.curso,
     unidade: du.unidade,
     unidadeId: du.unidadeId || '',
-    passwordHash: hashSenha(du.passwordPlain),
+    passwordHash: scryptHash(du.passwordPlain),
     createdAt: new Date().toISOString()
   }));
   kvUpsert({ senai_users_data: seeded });
@@ -412,16 +507,40 @@ function handleAuthLogin(req, res) {
       sendJson(res, 400, { ok: false, error: 'Informe usuário e senha.' });
       return;
     }
+    const lk = loginKey(login, req);
+    const blocked = loginBlocked(lk);
+    if (blocked) {
+      sendJson(res, 429, { ok: false, error: 'Muitas tentativas. Tente novamente em ' + blocked + 's.', retryInSeconds: blocked });
+      return;
+    }
     const users = kvGet('senai_users_data');
     if (!Array.isArray(users) || users.length === 0) {
       sendJson(res, 401, { ok: false, error: 'Base de usuários indisponível no servidor.' });
       return;
     }
     const user = users.find(u => String(u.login).trim().toLowerCase() === login);
-    if (!user || !user.passwordHash || user.passwordHash !== hashSenha(senha)) {
-      sendJson(res, 401, { ok: false, error: 'Usuário ou senha inválidos.' });
+    const stored = user && user.passwordHash;
+    const ok = user && stored && (stored.startsWith('scrypt$')
+      ? scryptVerify(senha, stored)
+      : hashSenha(senha) === stored);
+    if (!user || !ok) {
+      recordLoginFailure(lk);
+      const extra = (loginAttempts.get(lk) || {}).count >= LOGIN_MAX_ATTEMPTS - 1
+        ? ' Após essa tentativa o acesso será bloqueado por 15 minutos.'
+        : '';
+      sendJson(res, 401, { ok: false, error: 'Usuário ou senha inválidos.' + extra });
       return;
     }
+    // Migração de hashes antigos (SHA-256) para scrypt no primeiro login bem-sucedido.
+    if (stored && !stored.startsWith('scrypt$')) {
+      user.passwordHash = scryptHash(senha);
+      const idx = users.findIndex(u => String(u.login).trim().toLowerCase() === login);
+      if (idx >= 0) {
+        users[idx] = user;
+        try { kvUpsert({ senai_users_data: users }); } catch (e) {}
+      }
+    }
+    clearLoginAttempts(lk);
     const token = issueSession(user);
     logAudit([{ papel: user.role, usuario: user.name, acao: 'login', detalhe: 'Autenticação no servidor' }]);
     sendJson(res, 200, { ok: true, token: token, user: publicUser(user) });
@@ -462,7 +581,12 @@ function handleDataGet(req, res) {
     sendJson(res, 401, { ok: false, error: 'Não autenticado.' });
     return;
   }
-  sendJson(res, 200, { ok: true, data: kvAll(), updatedAt: kvLatestUpdatedAt() });
+  const all = kvAll();
+  const data = {};
+  for (const k of Object.keys(all)) {
+    if (keyReadableFor(k, ses)) data[k] = all[k];
+  }
+  sendJson(res, 200, { ok: true, data: data, updatedAt: kvLatestUpdatedAt() });
 }
 
 function handleDataPut(req, res) {
@@ -504,6 +628,11 @@ function handleDataPut(req, res) {
 }
 
 function handleDataUpload(req, res) {
+  const ses = requireSession(req);
+  if (!ses) {
+    sendJson(res, 401, { ok: false, error: 'Não autenticado.' });
+    return;
+  }
   readBody(req, 96).then(body => {
     const data = body && typeof body.data === 'object' ? body.data : null;
     if (!data || Object.keys(data).length === 0) {
@@ -521,7 +650,12 @@ function handleDataUpload(req, res) {
   }).catch(() => sendJson(res, 400, { ok: false, error: 'JSON inválido.' }));
 }
 
-function handleDataDownload(res) {
+function handleDataDownload(req, res) {
+  const ses = requireSession(req);
+  if (!ses) {
+    sendJson(res, 401, { ok: false, error: 'Não autenticado.' });
+    return;
+  }
   const payload = { meta: { app: 'portal-docente-senai', dataVersion: 'v3', createdAt: new Date().toISOString(), origem: 'SQLite' }, data: kvAll() };
   const body = JSON.stringify(payload, null, 2);
   res.writeHead(200, {
@@ -628,7 +762,20 @@ function handleMateriaisDelete(req, res, url) {
     sendJson(res, 400, { ok: false, error: 'Informe o id.' });
     return;
   }
+  const row = db.prepare('SELECT unidadeOrigem FROM materiais WHERE id = ?').get(String(id));
+  if (!row) {
+    sendJson(res, 404, { ok: false, error: 'Material não encontrado.' });
+    return;
+  }
+  const dono = row.unidadeOrigem;
+  const permitido = ses.role === 'coordenacao' || ses.role === 'nacional' ||
+    (dono && slugify(ses.unidadeId) === slugify(dono));
+  if (!permitido) {
+    sendJson(res, 403, { ok: false, error: 'Sem permissão para excluir este material.' });
+    return;
+  }
   db.prepare('DELETE FROM materiais WHERE id = ?').run(String(id));
+  logAudit([{ papel: ses.role, usuario: ses.name, acao: 'material-delete', detalhe: 'Excluiu material ' + id }]);
   sendJson(res, 200, { ok: true, id: id });
 }
 
@@ -845,8 +992,7 @@ function handleChat(req, res) {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no',
-        'Access-Control-Allow-Origin': '*'
+        'X-Accel-Buffering': 'no'
       });
 
       let buffer = '';
@@ -1127,9 +1273,19 @@ const server = http.createServer((req, res) => {
   const method = req.method;
   const url = req.url.split('?')[0];
 
+  // Restringe Access-Control-Allow-Origin em todas as respostas (mesma origem / CORS_ORIGIN).
+  const resWriteHead = res.writeHead.bind(res);
+  res.writeHead = (statusCode, headers, ...rest) => {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
+      const origin = corsOrigin(req);
+      if (origin) headers['Access-Control-Allow-Origin'] = origin;
+      else delete headers['Access-Control-Allow-Origin'];
+    }
+    return resWriteHead(statusCode, headers, ...rest);
+  };
+
   if (method === 'OPTIONS') {
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type'
     });
@@ -1143,7 +1299,7 @@ const server = http.createServer((req, res) => {
 
   if (url === '/api/data' && method === 'GET') { handleDataGet(req, res); return; }
   if (url === '/api/data' && method === 'PUT') { handleDataPut(req, res); return; }
-  if (url === '/api/data/download' && method === 'GET') { handleDataDownload(res); return; }
+  if (url === '/api/data/download' && method === 'GET') { handleDataDownload(req, res); return; }
   if (url === '/api/data/upload' && method === 'POST') { handleDataUpload(req, res); return; }
   if (url === '/api/data/backups' && method === 'GET') { sendJson(res, 200, { ok: true, backups: listBackups() }); return; }
   if (url === '/api/data/backup' && method === 'POST') { sendJson(res, 200, { ok: true, backup: runBackup(true) }); return; }

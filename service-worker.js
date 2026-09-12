@@ -2,8 +2,9 @@
  * SERVICE-WORKER.JS - PWA / OFFLINE-FIRST
  * Estratégia: cache-first para estáticos (com revalidação) e
  * network-first para as APIs (/api/*) para nunca perder sincronização.
+ * Fontes do Google: cache-first com revalidação (funciona offline após 1ª visita).
  */
-const CACHE = 'portal-senai-v2';
+const CACHE = 'portal-senai-v3';
 const CORE = [
   '/pages/index.html',
   '/pages/dashboard.html',
@@ -40,6 +41,9 @@ const CORE = [
   '/js/central.js',
   '/js/calendario.js',
   '/js/mural.js',
+  '/js/sidebar.js',
+  '/js/vendor/jspdf.umd.min.js',
+  '/js/vendor/jspdf.plugin.autotable.min.js',
   '/img/senailogo.png',
   '/img/icon-192.png',
   '/img/icon-512.png',
@@ -66,11 +70,30 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+function staleWhileRevalidate(req) {
+  return caches.match(req).then(cached => {
+    const network = fetch(req).then(res => {
+      if (res && res.ok) {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+      }
+      return res;
+    }).catch(() => cached);
+    return cached || network;
+  });
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== location.origin) return;
+  if (url.origin !== location.origin) {
+    // Fontes do Google: cache-first com revalidação em segundo plano.
+    if (url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com') {
+      event.respondWith(staleWhileRevalidate(req));
+    }
+    return;
+  }
 
   // API: network-first, cache de fallback (decisivo: não perder dados offline)
   if (url.pathname.startsWith('/api/')) {
