@@ -186,6 +186,30 @@ async function main() {
       else fail('rate limit', codes.join(','));
     }
 
+    // 9) IA: abortar o stream do chat no meio NÃO deve derrubar o servidor
+    {
+      const st = await req('/api/ollama/status');
+      if (st.body && st.body.modelReady === true) {
+        const model = (st.body.models && st.body.models[0]) || 'qwen2.5:3b';
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 3000);
+        try {
+          await fetch(BASE + '/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: model, context: {}, messages: [{ role: 'user', content: 'teste de abort' }] }),
+            signal: ctrl.signal
+          });
+        } catch (e) { /* abortado de proposito */ }
+        clearTimeout(t);
+        const h = await req('/api/health');
+        if (h.status === 200) ok('abortar o stream do chat nao derruba o servidor');
+        else fail('abortar o stream do chat nao derruba o servidor', 'health=' + h.status);
+      } else {
+        console.log('  SKIP  IA offline (Ollama nao disponivel no ambiente de teste)');
+      }
+    }
+
     console.log('\n' + passed + ' passed, ' + failed + ' failed.');
   } catch (e) {
     failed++;

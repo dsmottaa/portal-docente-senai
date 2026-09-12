@@ -978,6 +978,17 @@ function handleChat(req, res) {
       messages: [system].concat(messages.slice(-8))
     });
 
+    let headersSent = false;
+    const safeWrite = (chunk) => {
+      if (!headersSent || res.writableEnded || res.destroyed) return;
+      try { res.write(chunk); } catch (e) { /* cliente desconectou */ }
+    };
+    const safeEnd = () => {
+      if (!res.writableEnded && !res.destroyed) {
+        try { res.end(); } catch (e) {}
+      }
+    };
+
     const up = http.request(`${OLLAMA_HOST}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
@@ -988,6 +999,7 @@ function handleChat(req, res) {
         r.on('end', () => sendJson(res, 502, { error: 'Ollama retornou erro: ' + err }));
         return;
       }
+      headersSent = true;
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -997,6 +1009,11 @@ function handleChat(req, res) {
 
       let buffer = '';
       r.on('data', chunk => {
+        if (res.destroyed) { up.destroy(); return; }
+        if (!dataReceived) {
+          dataReceived = true;
+          up.setTimeout(600000, onTimeout);
+        }
         buffer += chunk.toString('utf8');
         const lines = buffer.split('\n');
         buffer = lines.pop();
@@ -1007,18 +1024,38 @@ function handleChat(req, res) {
           try { parsed = JSON.parse(t); } catch (e) { return; }
           const delta = parsed.message && parsed.message.content ? parsed.message.content : '';
           const done = parsed.done === true;
-          res.write(`data: ${JSON.stringify({ text: delta, done: done })}\n\n`);
-          if (done) res.end();
+          safeWrite(`data: ${JSON.stringify({ text: delta, done: done })}\n\n`);
+          if (done) safeEnd();
         });
       });
-      r.on('end', () => { res.end(); });
-      r.on('error', () => { try { res.end(); } catch (e) {} });
+      r.on('end', () => safeEnd());
+      r.on('error', () => safeEnd());
     });
 
+    // Cliente fechou a página no meio do stream: aborta o Ollama para não deixar pendência.
+    res.on('close', () => { try { up.destroy(); } catch (e) {} });
+    res.on('error', () => { try { up.destroy(); } catch (e) {} });
+
+    let timedOut = false;
+    let dataReceived = false;
+    const onTimeout = () => {
+      timedOut = true;
+      try { up.destroy(); } catch (e) {}
+      if (!dataReceived && !headersSent) {
+        sendJson(res, 503, { error: 'O Ollama não respondeu em tempo hábil. Verifique se ele está em execução.' });
+      } else {
+        safeEnd();
+      }
+    };
     up.on('error', () => {
-      sendJson(res, 503, { error: 'Não foi possível conectar ao Ollama em ' + OLLAMA_HOST + '. Verifique se ele está instalado e em execução.' });
+      if (!headersSent) {
+        sendJson(res, 503, { error: 'Não foi possível conectar ao Ollama em ' + OLLAMA_HOST + '. Verifique se ele está instalado e em execução.' });
+      } else {
+        safeEnd();
+      }
     });
-    up.setTimeout(600000, () => up.destroy());
+    // 30s para o primeiro byte; após a primeira resposta o stream segue (total 10 min).
+    up.setTimeout(30000, onTimeout);
     up.end(payload);
   }).catch(err => {
     sendJson(res, 400, { error: 'JSON inválido no corpo da requisição.' });
