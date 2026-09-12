@@ -53,6 +53,8 @@ service-worker.js    PWA / cache offline
 instalar-tudo.bat    instala Ollama + modelo (Windows)
 iniciar-sistema.bat  inicia o servidor (Windows)
 backups/             backups automáticos do banco (mantém 3)
+backup-externo.cjs   backup para pendrive/pasta externa
+backup-externo.bat   atalho do backup externo (Windows)
 ```
 
 ## Segurança e funcionamento
@@ -62,6 +64,7 @@ backups/             backups automáticos do banco (mantém 3)
 - **Isolamento por unidade**: sobrescrever `PUT /api/data` só aceita chaves da própria unidade; `GET /api/data` só devolve dados da própria unidade (nunca retorna hashes de usuários).
 - Upload/download exigem autenticação; exclusão de materiais é restrita ao autor da unidade, coordenação ou papel nacional.
 - CORS restrito à mesma origem (ou origens em `CORS_ORIGIN`).
+- `POST /api/data/reset` (somente coordenação/nacional) limpa os dados operacionais mantendo os usuários criados.
 - `.gitignore` protege `portal.sqlite*`, `backups/`, `classroom-config.json` e `classroom-tokens.json`.
 
 ## IA local (Ollama)
@@ -72,7 +75,37 @@ Instale o Ollama e o modelo:
 ollama pull qwen2.5:3b
 ```
 
-O modelo padrão pode ser alterado pela constante `MODEL` no `server.js`. Endereço configurável via env `OLLAMA_HOST`.
+Modelos recomendados (escolha na tela de IA — o seletor lista os instalados):
+
+| Modelo | Velocidade | Qualidade | Ideal para |
+|---|---|---|---|
+| `qwen2.5:1.5b` | ⚡ Muito rápida (CPU simples) | Básica | Notebooks modestos; respostas rápidas |
+| `qwen2.5:3b` | Normal | Boa | Uso diário com boa qualidade |
+| `qwen2.5:7b` | Lenta sem GPU | Excelente | Máquinas com GPU ou poucos usuários |
+
+Modelos maiores também podem ser usados, desde que instalados (`ollama pull`). O modelo padrão pode ser alterado pela constante `MODEL` no `server.js`. Endereço configurável via env `OLLAMA_HOST`.
+
+## Acesso na rede local (outro aparelho na sala)
+
+O servidor já escuta em todas as interfaces. Ao iniciar, ele **imprime no console os endereços da rede** (ex.: `http://192.168.1.20:8000`).
+
+1. Notebook e aparelho(s) conectados no **mesmo Wi-Fi**.
+2. Abra no outro aparelho o endereço impresso no console do servidor (ou descubra o IP do notebook e use `http://IP:8000`).
+3. O primeiro acesso pode demorar um pouco (download do PWA); depois funciona offline.
+
+> **Importante:** a integração com Google Classroom (OAuth) só funciona em `http://localhost` — em outros aparelhos o botão de login do Google fica indisponível (os demais recursos funcionam normalmente).
+
+## Backup externo (pendrive)
+
+Gere um **snapshot consistente do banco + a pasta `backups/`** em um pendrive ou pasta externa — pode ser feito com o servidor rodando:
+
+```bash
+node backup-externo.cjs D:\            # pendrive
+node backup-externo.cjs "E:\Meu Backup" # pasta com espaço
+node backup-externo.cjs                 # procura automaticamente D:, E: ou F:
+```
+
+No Windows também há o atalho `backup-externo.bat` (clique duas vezes). Recomenda-se rodar ao menos 1× por semana e guardar o pendrive em lugar seguro.
 
 ## Publicação no GitHub
 
@@ -80,4 +113,4 @@ O repositório contém o código-fonte completo sem dados sensíveis. Ao publica
 
 ## Testes
 
-`node test.js` sobe uma instância isolada (porta e banco temporários) e valida: saúde da API, páginas, autenticação, isolamento por unidade, rate limit e CORS.
+`node test.js` sobe uma instância isolada (porta e banco temporários) e valida: saúde da API, páginas, autenticação, isolamento por unidade, rate limit, CORS e reset de dados.

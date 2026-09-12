@@ -156,17 +156,19 @@
   }
 
   // --- ZONA DE DADOS ---
-  function resetarDadosAmostra() {
+  async function resetarDadosAmostra() {
     if (!confirm('Restaurar os dados de amostra? Alunos, avaliações, chamadas e ocorrências atuais serão substituídos.')) return;
+    await fetch('/api/data/reset', { method: 'POST', headers: SENAI_authHeaders() }).catch(() => {});
     SENAI_clearAllData();
     playTone(650, 'sine', 0.1, 0.04);
     showToast('Dados de amostra restaurados!', 'success', 3000);
     setTimeout(() => window.location.reload(), 800);
   }
 
-  function apagarTudo() {
+  async function apagarTudo() {
     if (!confirm('ISSO APAGARÁ TODOS OS DADOS do sistema, inclusive usuários. Deseja continuar?')) return;
     if (!confirm('Confirma a exclusão definitiva de TODOS os dados?')) return;
+    await fetch('/api/data/reset', { method: 'POST', headers: SENAI_authHeaders() }).catch(() => {});
     [SENAI_USERS_KEY, SENAI_SESSION_KEY, SENAI_BACKUP_KEY].forEach(k => {
       try { localStorage.removeItem(k); } catch (e) {}
     });

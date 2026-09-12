@@ -96,12 +96,33 @@
       </div>
 
       <div class="feature-card">
+        <h3>Acesso na sala (usar em outro aparelho)</h3>
+        <ul style="margin:10px 0 0 4px;padding-left:20px;line-height:2">
+          <li>O servidor j&aacute; escuta em todas as interfaces. Ao iniciar, o console do servidor <b>mostra os endere&ccedil;os da rede</b> (ex.: <code>http://192.168.1.20:8000</code>).</li>
+          <li>Conecte notebook e aparelhos no <b>mesmo Wi-Fi</b> e abra neles o endere&ccedil;o exibido no console (ou use o IP do notebook seguido de <code>:8000</code>).</li>
+          <li>O primeiro acesso no aparelho demora um pouco (instala&ccedil;&atilde;o do modo offline); depois abre at&eacute; sem internet.</li>
+          <li><b>Limita&ccedil;&atilde;o:</b> o Google Classroom (OAuth) s&oacute; funciona em <code>http://localhost</code> &mdash; em aparelhos da rede o login do Google fica desativado, mas os demais recursos funcionam.</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
         <h3>Assistente IA (Ollama) &mdash; opcional</h3>
         <ul style="margin:10px 0 0 4px;padding-left:20px;line-height:2">
           <li>A IA &eacute; <b>local</b>: o portal conversa com o Ollama da pr&oacute;pria m&aacute;quina, ent&atilde;o cada computador precisa do Ollama instalado.</li>
           <li>Forma r&aacute;pida: d&ecirc; <b>dois cliques</b> no arquivo <code>instalar-tudo.bat</code> &mdash; ele baixa, instala e puxa o modelo automaticamente.</li>
           <li>Manual: instale em <a href="https://ollama.com/download" target="_blank" rel="noopener">ollama.com</a> e rode no terminal <code>ollama pull qwen2.5:3b</code> (uma vez s&oacute;).</li>
+          <li>Na tela de IA h&aacute; um <b>seletor de modelo</b> com os que est&atilde;o instalados. Para respostas mais r&aacute;pidas em notebooks simples, instale tamb&eacute;m <code>ollama pull qwen2.5:1.5b</code>.</li>
           <li>Sem o Ollama, o portal funciona normalmente &mdash; s&oacute; a parte de respostas "inteligentes" fica limitada ao modo offline.</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3>Backup para guardar fora (pendrive)</h3>
+        <ul style="margin:10px 0 0 4px;padding-left:20px;line-height:2">
+          <li>Al&eacute;m dos backups autom&aacute;ticos (a cada 2 h em <code>backups/</code>), voc&ecirc; pode gerar um <b>snapshot completo no pendrive</b>, com o servidor rodando.</li>
+          <li>No Windows: clique <b>duas vezes</b> em <code>backup-externo.bat</code>, conecte o pendrive e informe a letra da unidade (ex.: <code>D:\</code>).</li>
+          <li>Ou rode no terminal: <code>node backup-externo.cjs D:\</code> (sem caminho, ele procura <code>D:</code>, <code>E:</code> ou <code>F:</code>).</li>
+          <li>Recomenda&ccedil;&atilde;o: fazer ao menos <b>1 vez por semana</b> e guardar o pendrive em local seguro.</li>
         </ul>
       </div>
 

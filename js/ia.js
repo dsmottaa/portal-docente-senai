@@ -561,7 +561,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const meta = document.createElement('div');
         meta.className = 'chat-stream-meta';
         meta.textContent = `Respondido em ${elapsed}s · ${selectedModel}`;
-        bubbleEl.appendChild(meta);
+
+        const btnSalvar = document.createElement('button');
+        btnSalvar.type = 'button';
+        btnSalvar.className = 'chat-btn-save';
+        btnSalvar.textContent = 'Salvar no Mural';
+        btnSalvar.addEventListener('click', () => {
+          try {
+            const hoje = SENAI_todayKey();
+            SENAI_addComunicado({
+              titulo: `Plano de ação · ${hoje}`,
+              conteudo: resumo,
+              visibilidade: 'unidade'
+            });
+            btnSalvar.textContent = 'Salvo ✓';
+            btnSalvar.disabled = true;
+            if (window.showToast) showToast('Plano salvo no Mural.', 'success', 3000);
+          } catch (e) {
+            btnSalvar.textContent = 'Erro ao salvar';
+            if (window.showToast) showToast('Não foi possível salvar o plano.', 'error', 3500);
+          }
+        });
+
+        const metaRow = document.createElement('div');
+        metaRow.className = 'chat-stream-meta';
+        metaRow.style.marginTop = '8px';
+        metaRow.appendChild(meta);
+        metaRow.appendChild(btnSalvar);
+        bubbleEl.appendChild(metaRow);
         chatEl.scrollTop = chatEl.scrollHeight;
       } else {
         bubbleEl.innerHTML = 'A IA não retornou texto. Tente reformular a pergunta.';

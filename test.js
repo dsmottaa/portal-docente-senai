@@ -210,6 +210,38 @@ async function main() {
       }
     }
 
+    // 10) Reset de dados (POST /api/data/reset)
+    {
+      const anon = await req('/api/data/reset', { method: 'POST' });
+      if (anon.status === 401) ok('POST /api/data/reset sem token -> 401');
+      else fail('POST /api/data/reset sem token', 'status=' + anon.status);
+    }
+    if (token) {
+      const prof = await req('/api/data/reset', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+      if (prof.status === 403) ok('POST /api/data/reset professor -> 403');
+      else fail('POST /api/data/reset professor', 'status=' + prof.status);
+    }
+    {
+      const lg = await req('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login: 'coord.senai', senha: 'coordenador2026' }) });
+      if (lg.status === 200 && lg.body && lg.body.token) {
+        ok('login coordenação -> token');
+        const tok = lg.body.token;
+        const reset = await req('/api/data/reset', { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
+        if (reset.status === 200 && reset.body && reset.body.ok === true) ok('POST /api/data/reset coordenação -> 200');
+        else fail('POST /api/data/reset coordenação', 'status=' + reset.status + ' ' + JSON.stringify(reset.body));
+        const lg2 = await req('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login: 'coord.senai', senha: 'coordenador2026' }) });
+        if (lg2.status === 200 && lg2.body && lg2.body.token) {
+          const g = await req('/api/data', { headers: { Authorization: 'Bearer ' + lg2.body.token } });
+          if (g.status === 200 && g.body && g.body.data) {
+            const keys = Object.keys(g.body.data);
+            const okReset = !keys.includes('senai_aulas_data__u_sp_sao_paulo__TEC_TESTE') && !keys.includes('senai_users_data');
+            if (okReset) ok('depois do reset, dados da turma sumiram (usuários preservados)');
+            else fail('depois do reset', keys.join(','));
+          } else fail('GET /api/data pos-reset', 'status=' + g.status);
+        } else fail('login coordenação pos-reset', 'status=' + lg2.status);
+      } else fail('login coordenação', 'status=' + lg.status);
+    }
+
     console.log('\n' + passed + ' passed, ' + failed + ' failed.');
   } catch (e) {
     failed++;

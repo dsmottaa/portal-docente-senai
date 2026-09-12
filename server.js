@@ -12,6 +12,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 
@@ -779,6 +780,29 @@ function handleMateriaisDelete(req, res, url) {
   sendJson(res, 200, { ok: true, id: id });
 }
 
+/* Limpa todos os dados operacionais (mantém usuários/senhas). Restrito à coordenação. */
+function handleDataReset(req, res) {
+  const ses = requireSession(req);
+  if (!ses) {
+    sendJson(res, 401, { ok: false, error: 'Não autenticado.' });
+    return;
+  }
+  if (ses.role !== 'coordenacao' && ses.role !== 'nacional') {
+    sendJson(res, 403, { ok: false, error: 'Somente coordenação pode apagar os dados.' });
+    return;
+  }
+  try {
+    const removed = db.prepare("DELETE FROM kv WHERE key != 'senai_users_data'").run().changes;
+    db.prepare('DELETE FROM materiais').run();
+    db.prepare('DELETE FROM log').run();
+    db.prepare('DELETE FROM sessions').run();
+    logAudit([{ papel: ses.role, usuario: ses.name, acao: 'reset', detalhe: removed + ' chave(s) apagadas' }]);
+    sendJson(res, 200, { ok: true, removed: removed });
+  } catch (e) {
+    sendJson(res, 500, { ok: false, error: e.message });
+  }
+}
+
 function handleMaterialDownload(req, res, url) {
   const resto = url.replace('/api/materiais/', '').replace(/\/download$/, '');
   const id = decodeURIComponent(resto.split('?')[0]);
@@ -1340,6 +1364,7 @@ const server = http.createServer((req, res) => {
   if (url === '/api/data/upload' && method === 'POST') { handleDataUpload(req, res); return; }
   if (url === '/api/data/backups' && method === 'GET') { sendJson(res, 200, { ok: true, backups: listBackups() }); return; }
   if (url === '/api/data/backup' && method === 'POST') { sendJson(res, 200, { ok: true, backup: runBackup(true) }); return; }
+  if (url === '/api/data/reset' && method === 'POST') { handleDataReset(req, res); return; }
   if (url === '/api/log' && method === 'GET') { handleLogGet(req, res, rawUrl); return; }
   if (url === '/api/log' && method === 'POST') { handleLogPost(req, res); return; }
 
@@ -1429,5 +1454,14 @@ server.listen(PORT, () => {
   console.log('│  PORTAL DO DOCENTE SENAI - servidor local        │');
   console.log('│  Acesse: http://localhost:' + PORT + '                   │');
   console.log('│  Ollama: ' + OLLAMA_HOST + '          │');
+  try {
+    const ips = Object.values(os.networkInterfaces())
+      .flat()
+      .filter(i => i && i.family === 'IPv4' && !i.internal);
+    if (ips.length) {
+      console.log('│  Na rede (outros aparelhos):                    │');
+      for (const i of ips) console.log('│    http://' + i.address + ':' + PORT + '           │');
+    }
+  } catch (e) {}
   console.log('└───────────────────────────────────────────────────┘');
 });

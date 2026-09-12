@@ -9,3 +9,6 @@ portal.sqlite
 portal.sqlite-wal
 portal.sqlite-shm
 backups/
+
+# Logs do servidor
+server.log*
