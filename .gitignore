@@ -1,0 +1,11 @@
+# Credenciais do Google Classroom (nunca subir)
+classroom-tokens.json
+classroom-config.json
+
+node_modules/
+
+# Banco de dados local + backups (dados pessoais, nunca subir)
+portal.sqlite
+portal.sqlite-wal
+portal.sqlite-shm
+backups/

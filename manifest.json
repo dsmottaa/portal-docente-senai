@@ -1,0 +1,17 @@
+{
+  "name": "Portal do Docente SENAI",
+  "short_name": "Portal SENAI",
+  "description": "Sistema nacional de apoio ao docente SENAI: turmas, presença, notas, materiais didáticos e coordenação.",
+  "start_url": "/pages/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F8FAFC",
+  "theme_color": "#E30613",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

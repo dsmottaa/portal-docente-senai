@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal do Docente | SENAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="login-page">
+
+  <!-- Background container with the high-tech workshop backdrop and particle/radar canvas -->
+  <div class="bg-wrapper">
+    <div class="bg-image"></div>
+    <div class="bg-vignette"></div>
+    <canvas id="techCanvas" class="tech-canvas"></canvas>
+  </div>
+
+  <!-- Main Login Center Area -->
+  <main class="login-wrapper">
+    <div class="portal-container">
+      
+      <!-- Brand Header -->
+      <header class="portal-header">
+        <div class="logo-box">
+          <img src="../img/senai-badge.png" alt="SENAI" class="senai-badge-img">
+        </div>
+        <h1 class="portal-title">PORTAL DO <span class="title-bold">DOCENTE</span></h1>
+      </header>
+
+      <!-- Form with Side-by-Side Inputs -->
+      <form id="loginForm" class="portal-form" novalidate autocomplete="off">
+        
+        <div class="form-row">
+          <!-- Input 1: Usuario ou CPF -->
+          <div class="input-group">
+            <label for="usuario" class="input-label">USUÁRIO OU CPF</label>
+            <div class="input-control">
+              <input 
+                type="text" 
+                id="usuario" 
+                name="usuario" 
+                class="portal-input" 
+                placeholder="" 
+                autocomplete="username" 
+                spellcheck="false"
+                required 
+                autofocus
+              >
+            </div>
+          </div>
+
+          <!-- Input 2: Senha -->
+          <div class="input-group">
+            <label for="senha" class="input-label">SENHA</label>
+            <div class="input-control">
+              <input 
+                type="password" 
+                id="senha" 
+                name="senha" 
+                class="portal-input" 
+                placeholder="" 
+                autocomplete="current-password" 
+                required
+              >
+              <button type="button" id="btnTogglePass" class="btn-toggle-eye" aria-label="Mostrar ou ocultar senha" tabindex="-1">
+                <!-- Eye Open -->
+                <svg class="eye-icon eye-show" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <!-- Eye Closed -->
+                <svg class="eye-icon eye-hide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <div id="capsLockIndicator" class="caps-indicator">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2L4.5 11h5v7h5v-7h5L12 2zm-7 18h14v2H5v-2z"/></svg>
+              <span>Caps Lock Ativado</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão Entrar -->
+        <button type="submit" id="btnSubmit" class="btn-entrar">
+          <span class="btn-text">ENTRAR</span>
+          <span class="btn-loader" aria-hidden="true"></span>
+        </button>
+
+        <!-- Linha Divisória com Link Esqueceu a Senha -->
+        <div class="forgot-divider">
+          <button type="button" id="btnOpenForgot" class="forgot-btn">ESQUECEU A SENHA?</button>
+        </div>
+
+      </form>
+
+      <!-- Botão sutil de Teste Rápido / Demo -->
+      <div class="demo-access-wrap">
+        <button type="button" id="btnQuickDemo" class="btn-quick-demo" title="Clique ou pressione Ctrl+D para preencher dados de teste">
+          <span class="demo-icon">⚡</span> Acesso Rápido Demo
+        </button>
+      </div>
+
+      <!-- Link guia de instalação (página pública) -->
+      <div class="demo-access-wrap" style="margin-top:12px">
+        <a href="instalacao.html" class="btn-quick-demo" style="text-decoration:none" title="Guia para instalar e rodar em outra máquina">
+          Como instalar e rodar?
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal Esqueceu a Senha -->
+  <div id="forgotModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button type="button" id="btnCloseModal" class="modal-close" aria-label="Fechar modal">&times;</button>
+      
+      <div class="modal-header">
+        <div class="modal-badge-icon">&#128273;</div>
+        <h2 id="modalTitle">Recuperação de Acesso</h2>
+        <p>Informe seu CPF ou e-mail institucional para redefinir sua senha.</p>
+      </div>
+
+      <form id="forgotForm" class="modal-form">
+        <div class="input-group">
+          <label for="recoveryInput" class="input-label">CPF OU E-MAIL</label>
+          <div class="input-control">
+            <input 
+              type="text" 
+              id="recoveryInput" 
+              class="portal-input modal-input" 
+              placeholder="ex: 123.456.789-00 ou aluno@senai.br" 
+              required
+            >
+          </div>
+        </div>
+        <button type="submit" id="btnSendRecovery" class="btn-entrar modal-btn">
+          <span>ENVIAR INSTRUÇÕES</span>
+        </button>
+      </form>
+
+      <div id="recoveryFeedback" class="recovery-feedback hidden">
+        <div class="feedback-success-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+        <h3>Instruções Enviadas!</h3>
+        <p>Um link de redefinição de acesso foi encaminhado para o e-mail cadastrado no sistema acadêmico.</p>
+        <button type="button" id="btnFinishModal" class="btn-subtle modal-back-btn">Voltar ao Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container de Toasts / Notificações -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/login.js"></script>
+</body>
+</html>
