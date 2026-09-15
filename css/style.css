@@ -59,14 +59,14 @@
 
 /* ─── Tema escuro ─── */
 [data-theme="dark"] {
-  --text-dark: #F1F5F9;
-  --text-body: #CBD5E1;
-  --text-muted: #94A3B8;
-  --text-light: #64748B;
-  --bg-dash: #0F172A;
-  --card-bg: #1E293B;
-  --border-color: #334155;
-  --border-light: #1E293B;
+  --text-dark: #E4E4E4;
+  --text-body: #E0E0E0;
+  --text-muted: #A0A0A0;
+  --text-light: #777777;
+  --bg-dash: #121212;
+  --card-bg: #1E1E1E;
+  --border-color: #2A2A2A;
+  --border-light: #282828;
   --accent-light: #3B0A0A;
   --accent-pill: #450A0A;
   --success-light: #052E16;
@@ -75,9 +75,9 @@
   --warning-border: #92400E;
   --danger-light: #450A0A;
   --danger-border: #991B1B;
-  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.4);
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.65);
 }
 
 * {

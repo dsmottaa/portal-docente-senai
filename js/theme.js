@@ -67,9 +67,9 @@
     el.style.setProperty('--accent', base);
     el.style.setProperty('--accent-rgb', rgbTripla(base));
     el.style.setProperty('--accent-hover', mix(base, '#FFFFFF', 0.82));
-    el.style.setProperty('--accent-active', mix(base, '#1E293B', 0.78));
-    el.style.setProperty('--accent-light', escuro ? mix(base, '#0F172A', 0.16) : mix(base, '#FFFFFF', 0.07));
-    el.style.setProperty('--accent-pill', escuro ? mix(base, '#0F172A', 0.30) : mix(base, '#FFFFFF', 0.10));
+    el.style.setProperty('--accent-active', mix(base, '#1E1E1E', 0.78));
+    el.style.setProperty('--accent-light', escuro ? mix(base, '#121212', 0.16) : mix(base, '#FFFFFF', 0.07));
+    el.style.setProperty('--accent-pill', escuro ? mix(base, '#121212', 0.30) : mix(base, '#FFFFFF', 0.10));
   };
 
   window.SENAI_aplicarTema = function () {
