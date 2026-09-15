@@ -5,12 +5,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Cores Globais SENAI */
-  --senai-red: #E30613;
-  --senai-red-hover: #F20620;
-  --senai-red-active: #C10510;
-  --senai-red-light: #FFF1F2;
-  --senai-red-pill: #FEE2E2;
+  /* Cores Globais SENAI (accent é personalizável via js/theme.js) */
+  --accent: #E30613;
+  --accent-hover: #F20620;
+  --accent-active: #C10510;
+  --accent-light: #FFF1F2;
+  --accent-pill: #FEE2E2;
+  --accent-rgb: 227, 6, 19;
+
+  --senai-red: var(--accent);
+  --senai-red-hover: var(--accent-hover);
+  --senai-red-active: var(--accent-active);
+  --senai-red-light: var(--accent-light);
+  --senai-red-pill: var(--accent-pill);
 
   --success-green: #059669;
   --success-light: #ECFDF5;
@@ -60,8 +67,8 @@
   --card-bg: #1E293B;
   --border-color: #334155;
   --border-light: #1E293B;
-  --senai-red-light: #3B0A0A;
-  --senai-red-pill: #450A0A;
+  --accent-light: #3B0A0A;
+  --accent-pill: #450A0A;
   --success-light: #052E16;
   --success-border: #166534;
   --warning-light: #451A03;
@@ -1818,7 +1825,7 @@ input, textarea, select {
 .modal-textarea-light:focus {
   border-color: var(--senai-red);
   background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.12);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
 }
 
 /* ============================================================
@@ -2016,4 +2023,158 @@ input, textarea, select {
 
 @media (max-width: 560px) {
   .materias-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   TEMA - ALTERNADOR DE CLARO/ESCURO + SELEÇÃO DE COR
+   (gerenciados por js/theme.js)
+   ============================================================ */
+
+/* Botão na sidebar (rodapé) */
+.btn-theme {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.btn-theme svg { flex-shrink: 0; }
+.btn-theme:hover {
+  color: var(--senai-red);
+  background: var(--senai-red-light);
+}
+
+/* Botão flutuante (tela de login) */
+.theme-float {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(24, 24, 28, 0.65);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  transition: var(--transition);
+}
+.theme-float:hover {
+  background: rgba(40, 40, 46, 0.85);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Seletor de cor (página Configurações) */
+.cor-picker-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.cor-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-subtle);
+  padding: 0;
+}
+.cor-swatch:hover { transform: scale(1.12); border-color: var(--text-light); }
+.cor-swatch.active {
+  border-color: var(--text-dark);
+  outline: 2px solid var(--card-bg);
+  box-shadow: 0 0 0 1px var(--text-dark);
+}
+[data-theme="dark"] .cor-swatch.active {
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 1px #FFFFFF;
+}
+.cor-picker-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cor-picker-foot input[type="color"] {
+  width: 46px;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  cursor: pointer;
+}
+.cor-hex {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-body);
+}
+.cor-dica { font-size: 12px; color: var(--text-muted); }
+
+/* ─── Tema escuro: superfícies que usavam cor fixa ─── */
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .sidebar-footer,
+[data-theme="dark"] .ctx-strip,
+[data-theme="dark"] .welcome-card,
+[data-theme="dark"] .btn-outline,
+[data-theme="dark"] .topbar-icon-btn,
+[data-theme="dark"] .btn-banner-action,
+[data-theme="dark"] .btn-widget-action,
+[data-theme="dark"] .view-switch-group,
+[data-theme="dark"] .search-input-wrap input,
+[data-theme="dark"] .footer-widget-card,
+[data-theme="dark"] .empty-state-card,
+[data-theme="dark"] .student-stats-box,
+[data-theme="dark"] .student-card,
+[data-theme="dark"] .turma-option-btn,
+[data-theme="dark"] .modal-summary-box { background: var(--card-bg); }
+
+[data-theme="dark"] .search-input-wrap input { color: var(--text-dark); border-color: var(--border-color); }
+
+[data-theme="dark"] .sidebar-profile-card,
+[data-theme="dark"] .student-avatar { background: var(--card-bg); }
+
+[data-theme="dark"] .student-card.is-absent { background: var(--card-bg); }
+
+[data-theme="dark"] .sidebar-menu a:hover,
+[data-theme="dark"] .btn-view-toggle.active,
+[data-theme="dark"] .search-kbd-badge,
+[data-theme="dark"] .btn-outline:hover,
+[data-theme="dark"] .topbar-icon-btn:hover,
+[data-theme="dark"] .btn-banner-action:hover,
+[data-theme="dark"] .btn-widget-action:hover,
+[data-theme="dark"] .btn-subtle:hover { background: var(--bg-dash); }
+
+[data-theme="dark"] .modal-input-light,
+[data-theme="dark"] .modal-textarea-light { background: var(--bg-dash); color: var(--text-dark); }
+[data-theme="dark"] .modal-input-light:focus,
+[data-theme="dark"] .modal-textarea-light:focus { background: var(--card-bg); }
+
+[data-theme="dark"] .avatar-ln { border-color: var(--accent-pill); }
+[data-theme="dark"] .student-card:hover { border-color: rgba(var(--accent-rgb), 0.6); }
+
+[data-theme="dark"] .widget-icon-box.blue,
+[data-theme="dark"] .modal-badge-icon.blue {
+  background: rgba(37, 99, 235, 0.16);
+  color: #93C5FD;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+@media (max-width: 768px) {
+  .btn-theme span { display: none; }
+  .btn-theme { justify-content: center; padding: 10px; }
 }

@@ -102,6 +102,12 @@
               <input id="cfgOficina" type="text" placeholder="Ex.: Oficina 2 (Bancada A)">
             </div>
           </div>
+        </form>
+      </div>
+
+      <div class="feature-card">
+        <h3>&#127912; Aparência</h3>
+        <form id="formAparencia" class="feature-form">
           <div class="form-row">
             <div class="form-group">
               <label for="cfgTema">Tema da interface</label>
@@ -110,6 +116,15 @@
                 <option value="dark">Escuro</option>
               </select>
               <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Você também pode alternar rapidamente com <b>Ctrl + Shift + D</b>.</p>
+            </div>
+            <div class="form-group">
+              <label for="cfgCor">Cor de destaque</label>
+              <div class="cor-picker-row" id="corPickerRow"></div>
+              <div class="cor-picker-foot">
+                <input type="color" id="cfgCor" value="#E30613" aria-label="Cor personalizada">
+                <span class="cor-hex" id="cfgCorHex">#E30613</span>
+                <span class="cor-dica">Sua cor é aplicada em todo o sistema</span>
+              </div>
             </div>
           </div>
         </form>
@@ -176,6 +191,7 @@
 
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
   <script src="../js/sidebar.js"></script>
+  <script src="../js/theme.js"></script>
 
   <script src="../js/data.js"></script>
   <script src="../js/auth.js"></script>

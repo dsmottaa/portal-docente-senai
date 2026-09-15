@@ -70,6 +70,43 @@
     document.getElementById('cfgOficina').value = cfg.oficina || '';
     const temaEl = document.getElementById('cfgTema');
     if (temaEl) temaEl.value = (localStorage.getItem('senai_tema') || 'light') === 'dark' ? 'dark' : 'light';
+    montarCorPicker();
+  }
+
+  // --- SELEÇÃO DE COR DE DESTAQUE ---
+  function montarCorPicker() {
+    const row = document.getElementById('corPickerRow');
+    const input = document.getElementById('cfgCor');
+    const hexEl = document.getElementById('cfgCorHex');
+    if (!row || !input) return;
+    const presets = (window.SENAI_CORES || [{ nome: 'SENAI', hex: '#E30613' }]);
+    const atual = (window.SENAI_COR_ATUAL ? SENAI_COR_ATUAL() : '#E30613').toUpperCase();
+    row.innerHTML = '';
+    presets.forEach(p => {
+      const hex = p.hex.toUpperCase();
+      const sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'cor-swatch' + (hex === atual ? ' active' : '');
+      sw.style.background = hex;
+      sw.title = `${p.nome} (${hex})`;
+      sw.setAttribute('aria-label', `Usar cor ${p.nome}`);
+      sw.addEventListener('click', () => {
+        if (window.SENAI_setCor) SENAI_setCor(hex);
+        input.value = hex;
+        if (hexEl) hexEl.textContent = hex;
+        row.querySelectorAll('.cor-swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+      });
+      row.appendChild(sw);
+    });
+    input.value = atual;
+    if (hexEl) hexEl.textContent = atual;
+    input.addEventListener('input', () => {
+      const v = input.value.toUpperCase();
+      if (window.SENAI_setCor) SENAI_setCor(v);
+      if (hexEl) hexEl.textContent = v;
+      row.querySelectorAll('.cor-swatch').forEach(s => s.classList.toggle('active', s.style.background.toLowerCase() === v.toLowerCase()));
+    });
   }
 
   // --- SALVAR CONFIG ---
@@ -84,10 +121,7 @@
     cfg.oficina = document.getElementById('cfgOficina').value.trim();
     const temaEl = document.getElementById('cfgTema');
     if (temaEl) localStorage.setItem('senai_tema', temaEl.value === 'dark' ? 'dark' : 'light');
-    if (window.SENAI_toggleTema) {
-      const atual = localStorage.getItem('senai_tema') === 'dark' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', atual);
-    }
+    if (window.SENAI_aplicarTemaCompleto) window.SENAI_aplicarTemaCompleto();
 
     const session = SENAI_getSession() || {};
     const unidadeEncontrada = Array.isArray(SENAI_UNIDADES)
@@ -215,6 +249,17 @@
     e.preventDefault();
     salvarConfig();
   });
+  const temaSel = document.getElementById('cfgTema');
+  if (temaSel) {
+    temaSel.addEventListener('change', () => {
+      localStorage.setItem('senai_tema', temaSel.value === 'dark' ? 'dark' : 'light');
+      if (window.SENAI_aplicarTemaCompleto) window.SENAI_aplicarTemaCompleto();
+    });
+  }
+  const formAparencia = document.getElementById('formAparencia');
+  if (formAparencia) {
+    formAparencia.addEventListener('submit', (e) => e.preventDefault());
+  }
   document.getElementById('btnResetDados').addEventListener('click', resetarDadosAmostra);
   document.getElementById('btnLimparTudo').addEventListener('click', apagarTudo);
   document.getElementById('btnExportarTurma').addEventListener('click', exportarTurma);

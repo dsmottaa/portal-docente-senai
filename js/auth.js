@@ -56,25 +56,13 @@
       });
     });
 
-    // Tema escuro persistente
-    const aplicarTema = () => {
-      const pref = (() => {
-        try {
-          const cfg = SENAI_loadConfig ? SENAI_loadConfig() : {};
-          if (cfg.temaEscuro === true || cfg.temaEscuro === 'true') return 'dark';
-        } catch (e) {}
-        return localStorage.getItem('senai_tema') || 'light';
-      })();
+    // Tema escuro + cor de destaque (gerenciados por js/theme.js)
+    if (window.SENAI_aplicarTemaCompleto) {
+      window.SENAI_aplicarTemaCompleto();
+    } else {
+      const pref = localStorage.getItem('senai_tema') || 'light';
       document.documentElement.setAttribute('data-theme', pref === 'dark' ? 'dark' : 'light');
-    };
-    aplicarTema();
-    window.SENAI_toggleTema = () => {
-      const atual = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('senai_tema', atual);
-      aplicarTema();
-      return atual;
-    };
-    window.addEventListener('senai:tema', () => aplicarTema());
+    }
 
     // Atalhos de teclado
     document.addEventListener('keydown', (e) => {

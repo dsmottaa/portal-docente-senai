@@ -331,7 +331,7 @@
 .feature-form .form-group textarea:focus {
   outline: none;
   border-color: var(--senai-red);
-  box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
 }
 
 .feature-form .form-group textarea {
@@ -1358,7 +1358,7 @@
 
 .chat-input-wrap input:focus {
   border-color: var(--senai-red);
-  box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.08);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.08);
 }
 
 .chat-input-wrap button {
@@ -2396,7 +2396,7 @@
 
 .cal-cell.is-selected {
   border-color: var(--senai-red);
-  box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.25);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.25);
   background: #fff0f1;
 }
 
@@ -2411,7 +2411,7 @@
 .cal-dots { display: flex; gap: 3px; min-height: 6px; }
 .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 .cal-dot.dot-aula { background: #059669; }
-.cal-dot.dot-reserva { background: #E30613; }
+.cal-dot.dot-reserva { background: var(--senai-red); }
 
 .cal-day-events {
   margin-top: 14px;
@@ -2990,7 +2990,7 @@
   gap: 8px;
   transition: var(--transition-fast);
 }
-.mat-card:hover { border-color: rgba(227, 6, 19, 0.35); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); }
+.mat-card:hover { border-color: rgba(var(--accent-rgb), 0.35); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); }
 .mat-card-top { display: flex; align-items: flex-start; gap: 10px; }
 .mat-card-icon {
   width: 40px;
@@ -3564,7 +3564,7 @@
   outline: none;
   transition: var(--transition-fast);
 }
-.modal-input-light:focus { border-color: var(--senai-red); box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.12); }
+.modal-input-light:focus { border-color: var(--senai-red); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12); }
 .modal-actions-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .btn-subtle {
   background: transparent;
@@ -3635,7 +3635,7 @@
   gap: 8px;
   transition: var(--transition-fast);
 }
-.mural-card:hover { border-color: rgba(227, 6, 19, 0.35); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); }
+.mural-card:hover { border-color: rgba(var(--accent-rgb), 0.35); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); }
 .mural-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mural-badge {
   font-size: 10.5px;
@@ -3685,6 +3685,54 @@
 [data-theme="dark"] .central-table th { color: var(--text-body); border-color: var(--border-color); }
 [data-theme="dark"] .central-kpi { background: var(--card-bg); }
 [data-theme="dark"] .central-kpi-val { color: var(--text-dark); }
+
+/* ─── Tema escuro: superfícies de páginas de recursos ─── */
+[data-theme="dark"] .materiais-sub-bar,
+[data-theme="dark"] .mat-card,
+[data-theme="dark"] .chip,
+[data-theme="dark"] .panel-alertas,
+[data-theme="dark"] .panel-sync,
+[data-theme="dark"] .central-section,
+[data-theme="dark"] .mural-card,
+[data-theme="dark"] .cal-nav,
+[data-theme="dark"] .modal-card,
+[data-theme="dark"] .ctx-select,
+[data-theme="dark"] .modal-input-light,
+[data-theme="dark"] .reserva-item.selected { background: var(--card-bg); }
+
+[data-theme="dark"] .justif-item,
+[data-theme="dark"] .alerta-item { background: var(--bg-dash); }
+
+[data-theme="dark"] .carometro-card.is-absent,
+[data-theme="dark"] .carometro-card.is-late,
+[data-theme="dark"] .cal-cell.is-today,
+[data-theme="dark"] .cal-cell.is-selected { background: var(--card-bg); }
+
+[data-theme="dark"] .mapa-celula.presente { background: rgba(5, 150, 105, 0.14); }
+[data-theme="dark"] .mapa-celula.ausente  { background: rgba(220, 38, 38, 0.14); }
+[data-theme="dark"] .mapa-celula.risco    { background: rgba(217, 119, 6, 0.14); }
+
+[data-theme="dark"] .feature-icon-box.blue,
+[data-theme="dark"] .stats-box-icon.blue,
+[data-theme="dark"] .status-badge.blue,
+[data-theme="dark"] .central-btn-link,
+[data-theme="dark"] .mat-meta-unit,
+[data-theme="dark"] .mural-badge-local {
+  background: rgba(37, 99, 235, 0.16);
+  color: #93C5FD;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+[data-theme="dark"] .turma-bancada,
+[data-theme="dark"] .acao-notas {
+  background: rgba(37, 99, 235, 0.16);
+  color: #93C5FD;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+[data-theme="dark"] .feature-icon-box.violet { background: rgba(124, 58, 237, 0.18); color: #C4B5FD; border: 1px solid rgba(124, 58, 237, 0.35); }
+[data-theme="dark"] .reserva-badge.badge-next { background: rgba(79, 70, 229, 0.2); color: #A5B4FC; }
+[data-theme="dark"] .chat-status-chip.online { color: #6EE7B7; background: rgba(5, 150, 105, 0.15); border-color: rgba(5, 150, 105, 0.4); }
+[data-theme="dark"] .chat-msg.user .chat-msg-avatar { background: rgba(37, 99, 235, 0.18); color: #93C5FD; }
+[data-theme="dark"] .model-select option { color: #0f172a; background: #fff; }
 
 /* ─── Impressão amigável ─── */
 @media print {

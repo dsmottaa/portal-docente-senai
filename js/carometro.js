@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="stats-box"><div class="stats-box-icon blue"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div><div><div class="stats-box-label">Média Nota</div><div class="stats-box-val">${media.toFixed(1)}</div></div></div>`;
   }
 
-  // ── GRID ──
+  // ── LISTA DA TURMA (chamada em lista) ──
   function renderGrid() {
     const vis = displayStudents();
     const filtered = vis.filter(s => {
@@ -67,33 +67,182 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.innerHTML = '<div class="diario-empty" style="grid-column:1/-1"><h3>Nenhum aluno encontrado</h3></div>';
       return;
     }
-    grid.innerHTML = '';
-    filtered.forEach(s => {
-      const st = s.status;
-      const cls = st === 'absent' ? 'is-absent' : (st === 'late' ? 'is-late' : 'is-present');
-      const freqColor = s.freq < 75 ? 'red' : s.freq < 90 ? 'amber' : 'green';
-      const shortName = s.name.length > 18 ? s.name.slice(0,16)+'...' : s.name;
-      const obs = s.observacoes && s.observacoes.trim();
-      const obsShort = obs ? (obs.length > 60 ? obs.slice(0, 57)+'...' : obs) : '';
-      const avatarHtml = s.photo
-        ? `<img class="carometro-avatar carometro-foto" src="${escHtml(s.photo)}" alt="">`
-        : `<div class="carometro-avatar">${escHtml(s.avatar)}</div>`;
-      const card = document.createElement('div');
-      card.className = `carometro-card ${cls}`;
-      card.innerHTML = `
-        ${avatarHtml}
-        <div class="carometro-name" title="${escHtml(s.name)}">${escHtml(shortName)}</div>
-        <div class="carometro-meta">Bancada ${s.bancada} &bull; ${s.matricula}</div>
-        ${obs ? `<div class="carometro-obs" title="${escHtml(obs)}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> ${escHtml(obsShort)}</div>` : ''}
-        <div class="carometro-bar-wrap">
-          <div class="carometro-bar-label"><span>Frequência</span><span>${s.freq}%</span></div>
-          <div class="carometro-bar"><div class="carometro-bar-fill ${freqColor}" style="width:${s.freq}%"></div></div>
+    grid.innerHTML = `
+      <div class="carometro-list">
+        <div class="carometro-list-head">
+          <span>Aluno <small class="cp-hint">(passe o cursor sobre o nome)</small></span>
+          <span class="col-bancada">Bancada</span>
+          <span class="col-status">Presença</span>
+          <span class="col-freq">Freq.</span>
+          <span class="col-nota">Nota</span>
+          <span class="col-obs">Observações</span>
         </div>
-        <span class="carometro-status ${st === 'absent' ? 'ausente' : st === 'late' ? 'atrasado' : 'presente'}">${st === 'absent' ? 'Ausente' : st === 'late' ? 'Atrasado' : 'Presente'}</span>`;
-      card.addEventListener('click', () => openAlunoModal(s.id));
-      grid.appendChild(card);
+        ${filtered.map(s => {
+          const st = s.status;
+          const cls = st === 'absent' ? 'is-absent' : (st === 'late' ? 'is-late' : 'is-present');
+          const freqColor = s.freq < 75 ? 'red' : s.freq < 90 ? 'amber' : 'green';
+          const notaColor = Number(s.nota) < 60 ? 'bad' : Number(s.nota) < 80 ? 'warn' : 'good';
+          const obs = s.observacoes && s.observacoes.trim();
+          const obsShort = obs ? (obs.length > 60 ? obs.slice(0, 57) + '...' : obs) : '';
+          const avatarHtml = s.photo
+            ? `<img class="carometro-list-avatar carometro-foto" src="${escHtml(s.photo)}" alt="">`
+            : `<div class="carometro-list-avatar">${escHtml(s.avatar)}</div>`;
+          return `
+          <div class="carometro-row ${cls}" data-id="${escHtml(s.id)}">
+            <div class="carometro-list-aluno">
+              ${avatarHtml}
+              <button type="button" class="carometro-list-name" data-preview-id="${escHtml(s.id)}" title="${escHtml(s.name)}">${escHtml(s.name)}</button>
+            </div>
+            <span class="carometro-list-bancada">${escHtml(s.bancada)}</span>
+            <span class="carometro-status ${st === 'absent' ? 'ausente' : st === 'late' ? 'atrasado' : 'presente'}">${st === 'absent' ? 'Ausente' : st === 'late' ? 'Atrasado' : 'Presente'}</span>
+            <span class="carometro-list-freq ${freqColor}">${s.freq}%</span>
+            <span class="carometro-list-nota ${notaColor}">${Number(s.nota) || 0}</span>
+            <span class="carometro-list-obs" title="${escHtml(obs || '')}">${obs ? escHtml(obsShort) : '—'}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+    grid.querySelectorAll('.carometro-row').forEach(row => {
+      row.addEventListener('click', () => openAlunoModal(row.dataset.id));
+    });
+    grid.querySelectorAll('.carometro-list-name').forEach(nameEl => {
+      nameEl.addEventListener('mouseenter', () => previewShow(nameEl.dataset.previewId, nameEl));
+      nameEl.addEventListener('mouseleave', () => previewHideLater(220));
     });
   }
+
+  // ── PRÉ-VISUALIZAÇÃO NO HOVER DO NOME ──
+  const previewTip = document.createElement('div');
+  previewTip.className = 'carometro-preview';
+  previewTip.setAttribute('role', 'tooltip');
+  previewTip.innerHTML = `
+    <button type="button" class="cp-close" title="Fechar">&times;</button>
+    <div class="cp-head">
+      <div class="cp-avatar" id="cpAvatar">--</div>
+      <div class="cp-id">
+        <strong class="cp-name"></strong>
+        <span class="cp-meta"></span>
+      </div>
+    </div>
+    <div class="cp-chips">
+      <span class="cp-chip cp-freq"></span>
+      <span class="cp-chip cp-nota"></span>
+      <span class="cp-chip cp-risco"></span>
+    </div>
+    <div class="cp-status-row">
+      <span class="cp-status-label">Presença de hoje</span>
+      <select class="cp-status">
+        <option value="present">Presente</option>
+        <option value="late">Atrasado</option>
+        <option value="absent">Ausente</option>
+      </select>
+    </div>
+    <label class="cp-obs-label" for="cpObs">Observações do aluno</label>
+    <textarea id="cpObs" class="cp-obs" rows="3" placeholder="Registre aqui o acompanhamento do aluno..."></textarea>
+    <div class="cp-actions">
+      <button type="button" class="cp-abrir">Abrir ficha completa</button>
+      <button type="button" class="cp-save">Salvar</button>
+    </div>`;
+  document.body.appendChild(previewTip);
+
+  let previewTimer = null;
+  let previewId = null;
+
+  function previewShow(id, anchor) {
+    const s = students.find(x => String(x.id) === String(id));
+    if (!s) return;
+    previewId = String(id);
+    clearTimeout(previewTimer);
+
+    const av = previewTip.querySelector('.cp-avatar');
+    av.className = 'cp-avatar ' + (s.status === 'absent' ? 'is-absent' : s.status === 'late' ? 'is-late' : 'is-present');
+    av.innerHTML = s.photo ? `<img class="cp-foto" src="${escHtml(s.photo)}" alt="">` : escHtml(s.avatar);
+
+    previewTip.querySelector('.cp-name').textContent = s.name;
+    previewTip.querySelector('.cp-meta').textContent = `Matrícula ${s.matricula} · Bancada ${s.bancada}`;
+
+    const freqEl = previewTip.querySelector('.cp-freq');
+    freqEl.textContent = `Freq: ${s.freq}%`;
+    freqEl.className = 'cp-chip cp-freq ' + (s.freq < 75 ? 'chip-bad' : s.freq < 90 ? 'chip-warn' : 'chip-good');
+
+    const notaEl = previewTip.querySelector('.cp-nota');
+    notaEl.textContent = `Nota: ${Number(s.nota) || 0}`;
+    notaEl.className = 'cp-chip cp-nota ' + (s.nota < 60 ? 'chip-bad' : s.nota < 80 ? 'chip-warn' : 'chip-good');
+
+    const riscoEl = previewTip.querySelector('.cp-risco');
+    riscoEl.textContent = s.riskLabel || 'Sem risco';
+    riscoEl.className = 'cp-chip cp-risco ' + (s.risk === 'high' ? 'chip-bad' : s.risk === 'medium' ? 'chip-warn' : 'chip-good');
+
+    const stSel = previewTip.querySelector('.cp-status');
+    stSel.value = s.status;
+
+    const obsEl = previewTip.querySelector('.cp-obs');
+    if (document.activeElement !== obsEl) obsEl.value = s.observacoes || '';
+
+    positionPreview(anchor);
+    previewTip.classList.add('visible');
+  }
+
+  function positionPreview(anchor) {
+    const rect = anchor.getBoundingClientRect();
+    const tipW = previewTip.offsetWidth || 340;
+    const tipH = previewTip.offsetHeight || 340;
+    let left = rect.right + 10;
+    if (left + tipW > window.innerWidth - 10) left = Math.max(10, rect.left - tipW - 10);
+    let top = rect.top;
+    if (top + tipH > window.innerHeight - 10) top = Math.max(10, window.innerHeight - tipH - 10);
+    previewTip.style.left = left + 'px';
+    previewTip.style.top = top + 'px';
+  }
+
+  function previewHideLater(delay) {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => previewTip.classList.remove('visible'), delay);
+  }
+  function previewCloseImmediate() {
+    clearTimeout(previewTimer);
+    previewTip.classList.remove('visible');
+  }
+
+  previewTip.addEventListener('mouseenter', () => clearTimeout(previewTimer));
+  previewTip.addEventListener('mouseleave', () => previewHideLater(180));
+
+  previewTip.querySelector('.cp-close').addEventListener('click', previewCloseImmediate);
+
+  previewTip.querySelector('.cp-status').addEventListener('change', (e) => {
+    if (!previewId) return;
+    const s = students.find(x => String(x.id) === String(previewId));
+    if (!s) return;
+    SENAI_setStatus(previewId, e.target.value);
+    students = SENAI_loadStudents();
+    showToast(`${s.name} marcado como ${e.target.value === 'present' ? 'PRESENTE' : e.target.value === 'late' ? 'ATRASADO' : 'AUSENTE'}.`, e.target.value === 'present' ? 'success' : 'info');
+    renderStats();
+    renderGrid();
+    const anchor = grid.querySelector(`.carometro-list-name[data-preview-id="${previewId}"]`);
+    if (anchor) previewShow(previewId, anchor);
+  });
+
+  previewTip.querySelector('.cp-save').addEventListener('click', () => {
+    if (!previewId) return;
+    const s = students.find(x => String(x.id) === String(previewId));
+    if (!s) return;
+    SENAI_updateStudent(previewId, { observacoes: previewTip.querySelector('.cp-obs').value.trim() });
+    students = SENAI_loadStudents();
+    showToast(`${s.name}: observações salvas!`, 'success');
+    renderStats();
+    renderGrid();
+    const anchor = grid.querySelector(`.carometro-list-name[data-preview-id="${previewId}"]`);
+    if (anchor) previewShow(previewId, anchor);
+  });
+
+  previewTip.querySelector('.cp-abrir').addEventListener('click', () => {
+    if (!previewId) return;
+    previewCloseImmediate();
+    openAlunoModal(previewId);
+  });
+
+  window.addEventListener('scroll', previewCloseImmediate, true);
+  window.addEventListener('resize', previewCloseImmediate);
 
   // ── MODAL COMPLETO POR ALUNO ──
   function escHtml(str) {
