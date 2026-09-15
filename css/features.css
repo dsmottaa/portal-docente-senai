@@ -3816,3 +3816,32 @@ button:hover .shortcut-hint { display: block; }
   white-space: nowrap;
 }
 .lgpd-banner button:hover { background: var(--senai-red-hover); }
+
+/* ─── Campos de entrada no tema escuro (paleta EAD SENAI) ─── */
+[data-theme="dark"] .feature-form .form-group input,
+[data-theme="dark"] .feature-form .form-group select,
+[data-theme="dark"] .feature-form .form-group textarea,
+[data-theme="dark"] .feature-search input,
+[data-theme="dark"] .search-input-wrap input,
+[data-theme="dark"] .modal-form .form-group input,
+[data-theme="dark"] .modal-form .form-group select,
+[data-theme="dark"] .modal-form .form-group textarea,
+[data-theme="dark"] .modal-input-light,
+[data-theme="dark"] .modal-textarea-light {
+  background: #181818;
+  border-color: #333333;
+  color: var(--text-dark);
+}
+[data-theme="dark"] .feature-form .form-group input:focus,
+[data-theme="dark"] .feature-form .form-group select:focus,
+[data-theme="dark"] .feature-form .form-group textarea:focus,
+[data-theme="dark"] .feature-search input:focus,
+[data-theme="dark"] .modal-input-light:focus,
+[data-theme="dark"] .modal-textarea-light:focus {
+  background: #1c1c1c;
+  border-color: var(--senai-red);
+}
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #888888;
+}
