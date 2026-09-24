@@ -1,25 +1,25 @@
 /**
  * SERVER.JS - SERVIDOR LOCAL DO PORTAL DO DOCENTE SENAI
  *  - Serve os arquivos estáticos do site (mesma origem, sem CORS)
- *  - GET  /api/ollama/status  → verifica se o Ollama está no ar
- *  - POST /api/ai/chat        → proxy para o Ollama com resposta em stream (SSE)
+ *  - POST /api/chat → assistente IA via Google Gemini (gemini-1.5-flash),
+ *    recebe { message, contextData } e responde em stream (SSE).
  *
  * Uso: node server.js   (abre em http://localhost:8000)
  * Requer Node.js 22+ (usa node:sqlite e scrypt nativos) - recomendado Node 24 LTS.
- * Zero dependências.
+ * Dependências npm: @google/generative-ai. Instale com `npm install`.
  */
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT) || 8000;
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const DEFAULT_MODEL = process.env.MODEL || 'qwen2.5:3b';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -63,7 +63,7 @@ function sendJson(res, status, payload) {
 
 function serveStatic(req, res) {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
-  if (urlPath === '/' || urlPath === '') urlPath = '/pages/index.html';
+  if (urlPath === '/' || urlPath === '') urlPath = '/index.html';
 
   // Mantém compatibilidade com URLs antigas (arquivos que ficavam na raiz)
   if (!urlPath.startsWith('/pages/') && !urlPath.startsWith('/js/') && !urlPath.startsWith('/css/') && !urlPath.startsWith('/img/')) {
@@ -88,9 +88,9 @@ function serveStatic(req, res) {
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      if (filePath.endsWith('.html') && (urlPath === '/index.html' || urlPath === '/pages/index.html')) {
-        // Redireciona '/' e o antigo '/index.html' para a página inicial em pages/
-        res.writeHead(302, { Location: '/pages/index.html' });
+      if (filePath.endsWith('.html') && urlPath === '/pages/index.html') {
+        // Redireciona a URL antiga (arquivos em pages/) para a página inicial na raiz
+        res.writeHead(302, { Location: '/index.html' });
         res.end();
         return;
       }
@@ -780,29 +780,6 @@ function handleMateriaisDelete(req, res, url) {
   sendJson(res, 200, { ok: true, id: id });
 }
 
-/* Limpa todos os dados operacionais (mantém usuários/senhas). Restrito à coordenação. */
-function handleDataReset(req, res) {
-  const ses = requireSession(req);
-  if (!ses) {
-    sendJson(res, 401, { ok: false, error: 'Não autenticado.' });
-    return;
-  }
-  if (ses.role !== 'coordenacao' && ses.role !== 'nacional') {
-    sendJson(res, 403, { ok: false, error: 'Somente coordenação pode apagar os dados.' });
-    return;
-  }
-  try {
-    const removed = db.prepare("DELETE FROM kv WHERE key != 'senai_users_data'").run().changes;
-    db.prepare('DELETE FROM materiais').run();
-    db.prepare('DELETE FROM log').run();
-    db.prepare('DELETE FROM sessions').run();
-    logAudit([{ papel: ses.role, usuario: ses.name, acao: 'reset', detalhe: removed + ' chave(s) apagadas' }]);
-    sendJson(res, 200, { ok: true, removed: removed });
-  } catch (e) {
-    sendJson(res, 500, { ok: false, error: e.message });
-  }
-}
-
 function handleMaterialDownload(req, res, url) {
   const resto = url.replace('/api/materiais/', '').replace(/\/download$/, '');
   const id = decodeURIComponent(resto.split('?')[0]);
@@ -948,59 +925,38 @@ function buildSystemPrompt(context) {
   ].join('\n');
 }
 
-function handleStatus(res) {
-  const start = Date.now();
-  const req = http.request(`${OLLAMA_HOST}/api/tags`, { method: 'GET', timeout: 3000 }, r => {
-    let body = '';
-    r.on('data', c => (body += c));
-    r.on('end', () => {
-      let models = [];
-      try {
-        const parsed = JSON.parse(body);
-        models = (parsed.models || []).map(m => m.name);
-      } catch (e) {}
-      const hasModel = models.some(m => m === DEFAULT_MODEL || m.startsWith(DEFAULT_MODEL + ':'));
-      sendJson(res, 200, {
-        ok: true,
-        ollama: true,
-        model: hasModel ? DEFAULT_MODEL : (models[0] || null),
-        modelReady: hasModel,
-        models: models,
-        latencyMs: Date.now() - start
-      });
-    });
-  });
-  req.on('timeout', () => { req.destroy(); });
-  req.on('error', () => {
-    sendJson(res, 200, { ok: false, ollama: false, model: null, modelReady: false, models: [], latencyMs: Date.now() - start });
-  });
-  req.end();
-}
+/* =========================================================================
+ * ASSISTENTE INTELIGENTE - GOOGLE GEMINI (gemini-1.5-flash)
+ *  - POST /api/chat  →  { message, contextData, history? }
+ *  - Analisa os dados da turma enviados no contextData e responde em
+ *    português em stream (SSE):  data: { "text": "...", "done": false|true }
+ * ========================================================================= */
+
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 function handleChat(req, res) {
-  readBody(req).then(body => {
-    const model = String(body.model || DEFAULT_MODEL);
-    const messages = Array.isArray(body.messages) ? body.messages : [];
-    if (messages.length === 0) {
+  readBody(req).then(async (body) => {
+    const message = String(body.message || '').trim();
+    const contextData = (body.contextData && typeof body.contextData === 'object') ? body.contextData : {};
+    const history = Array.isArray(body.history) ? body.history : [];
+
+    if (!message) {
       sendJson(res, 400, { error: 'Nenhuma mensagem enviada.' });
       return;
     }
 
-    const system = { role: 'system', content: buildSystemPrompt(body.context) };
-    const payload = JSON.stringify({
-      model: model,
-      stream: true,
-      keep_alive: '1h',
-      options: {
-        num_ctx: 8192,
-        num_predict: 512,
-        temperature: 0.7,
-        repeat_penalty: 1.15,
-        top_k: 40,
-        top_p: 0.9
-      },
-      messages: [system].concat(messages.slice(-8))
-    });
+    // Converte o histórico do chat (roles user/assistant) para o formato do
+    // Gemini (roles user/model), limitando ao tamanho seguro do contexto.
+    const contents = history
+      .slice(-8)
+      .filter(m => m && (m.role === 'user' || m.role === 'assistant'))
+      .map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: String(m.content || '').slice(0, 8000) }]
+      }));
+    contents.push({ role: 'user', parts: [{ text: message.slice(0, 8000) }] });
+
+    const systemInstruction = buildSystemPrompt(contextData);
 
     let headersSent = false;
     const safeWrite = (chunk) => {
@@ -1012,17 +968,24 @@ function handleChat(req, res) {
         try { res.end(); } catch (e) {}
       }
     };
+    const failBeforeStream = (status, error) => {
+      if (headersSent) { safeEnd(); return; }
+      sendJson(res, status, { error: error });
+    };
 
-    const up = http.request(`${OLLAMA_HOST}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
-    }, r => {
-      if (r.statusCode && r.statusCode >= 400) {
-        let err = '';
-        r.on('data', c => (err += c));
-        r.on('end', () => sendJson(res, 502, { error: 'Ollama retornou erro: ' + err }));
-        return;
-      }
+    try {
+      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+      const result = await model.generateContentStream({
+        systemInstruction: systemInstruction,
+        contents: contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+          topP: 0.9,
+          topK: 40
+        }
+      });
+
       headersSent = true;
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -1031,83 +994,29 @@ function handleChat(req, res) {
         'X-Accel-Buffering': 'no'
       });
 
-      let buffer = '';
-      r.on('data', chunk => {
-        if (res.destroyed) { up.destroy(); return; }
-        if (!dataReceived) {
-          dataReceived = true;
-          up.setTimeout(600000, onTimeout);
-        }
-        buffer += chunk.toString('utf8');
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-        lines.forEach(line => {
-          const t = line.trim();
-          if (!t) return;
-          let parsed;
-          try { parsed = JSON.parse(t); } catch (e) { return; }
-          const delta = parsed.message && parsed.message.content ? parsed.message.content : '';
-          const done = parsed.done === true;
-          safeWrite(`data: ${JSON.stringify({ text: delta, done: done })}\n\n`);
-          if (done) safeEnd();
-        });
-      });
-      r.on('end', () => safeEnd());
-      r.on('error', () => safeEnd());
-    });
-
-    // Cliente fechou a página no meio do stream: aborta o Ollama para não deixar pendência.
-    res.on('close', () => { try { up.destroy(); } catch (e) {} });
-    res.on('error', () => { try { up.destroy(); } catch (e) {} });
-
-    let timedOut = false;
-    let dataReceived = false;
-    const onTimeout = () => {
-      timedOut = true;
-      try { up.destroy(); } catch (e) {}
-      if (!dataReceived && !headersSent) {
-        sendJson(res, 503, { error: 'O Ollama não respondeu em tempo hábil. Verifique se ele está em execução.' });
-      } else {
-        safeEnd();
+      for await (const chunk of result.stream) {
+        if (res.destroyed) break;
+        const text = chunk.text();
+        if (text) safeWrite(`data: ${JSON.stringify({ text: text, done: false })}\n\n`);
       }
-    };
-    up.on('error', () => {
-      if (!headersSent) {
-        sendJson(res, 503, { error: 'Não foi possível conectar ao Ollama em ' + OLLAMA_HOST + '. Verifique se ele está instalado e em execução.' });
+      safeWrite(`data: ${JSON.stringify({ text: '', done: true })}\n\n`);
+      safeEnd();
+    } catch (err) {
+      console.error('[Gemini] Erro:', err && err.message ? err.message : err);
+      const m = String(err && err.message ? err.message : err);
+      if (m.indexOf('403') >= 0 || m.indexOf('API key') >= 0 || m.indexOf('apiKey') >= 0) {
+        failBeforeStream(401, 'Chave da API do Gemini inválida ou sem permissão. Verifique GEMINI_API_KEY (Google AI Studio).');
+      } else if (m.indexOf('429') >= 0 || m.indexOf('quota') >= 0) {
+        failBeforeStream(429, 'Limite de requisições do Gemini atingido. Tente novamente em instantes.');
+      } else if (m.indexOf('404') >= 0 || m.indexOf('not found') >= 0 || m.indexOf('not_found') >= 0 || m.indexOf('is not found') >= 0) {
+        failBeforeStream(502, 'Modelo Gemini indisponível (' + GEMINI_MODEL + ') ou chave sem acesso à API. Verifique GEMINI_API_KEY (https://aistudio.google.com/apikey) e GEMINI_MODEL.');
       } else {
-        safeEnd();
+        failBeforeStream(503, 'Falha ao consultar o Gemini: ' + m.slice(0, 200));
       }
-    });
-    // 30s para o primeiro byte; após a primeira resposta o stream segue (total 10 min).
-    up.setTimeout(30000, onTimeout);
-    up.end(payload);
-  }).catch(err => {
+    }
+  }).catch(() => {
     sendJson(res, 400, { error: 'JSON inválido no corpo da requisição.' });
   });
-}
-
-function handlePull(res) {
-  // Baixa o modelo padrão via Ollama (POST /api/pull). Opcional/sob demanda.
-  const payload = JSON.stringify({ model: DEFAULT_MODEL, stream: false });
-  const up = http.request(`${OLLAMA_HOST}/api/pull`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
-  }, r => {
-    let body = '';
-    r.on('data', c => (body += c));
-    r.on('end', () => {
-      const ok = r.statusCode && r.statusCode >= 200 && r.statusCode < 400;
-      sendJson(res, ok ? 200 : 502, {
-        ok: ok,
-        error: ok ? undefined : (body && body.slice(0, 200)) || 'Erro ao baixar o modelo.'
-      });
-    });
-  });
-  up.on('error', () => {
-    sendJson(res, 503, { ok: false, error: 'Não foi possível conectar ao Ollama em ' + OLLAMA_HOST + '. Verifique se ele está instalado e em execução.' });
-  });
-  up.setTimeout(1200000, () => up.destroy());
-  up.end(payload);
 }
 
 /* =========================================================================
@@ -1364,7 +1273,6 @@ const server = http.createServer((req, res) => {
   if (url === '/api/data/upload' && method === 'POST') { handleDataUpload(req, res); return; }
   if (url === '/api/data/backups' && method === 'GET') { sendJson(res, 200, { ok: true, backups: listBackups() }); return; }
   if (url === '/api/data/backup' && method === 'POST') { sendJson(res, 200, { ok: true, backup: runBackup(true) }); return; }
-  if (url === '/api/data/reset' && method === 'POST') { handleDataReset(req, res); return; }
   if (url === '/api/log' && method === 'GET') { handleLogGet(req, res, rawUrl); return; }
   if (url === '/api/log' && method === 'POST') { handleLogPost(req, res); return; }
 
@@ -1377,16 +1285,12 @@ const server = http.createServer((req, res) => {
     if (resto.length > 0 && method === 'DELETE') { handleMateriaisDelete(req, res, url); return; }
   }
 
-  if (url === '/api/ollama/status' && method === 'GET') {
-    handleStatus(res);
+  if (url === '/api/chat' && method === 'POST') {
+    handleChat(req, res);
     return;
   }
   if (url === '/api/ai/chat' && method === 'POST') {
     handleChat(req, res);
-    return;
-  }
-  if (url === '/api/ai/pull' && method === 'POST') {
-    handlePull(res);
     return;
   }
   if (url === '/api/health') {
@@ -1453,15 +1357,6 @@ server.listen(PORT, () => {
   console.log('┌───────────────────────────────────────────────────┐');
   console.log('│  PORTAL DO DOCENTE SENAI - servidor local        │');
   console.log('│  Acesse: http://localhost:' + PORT + '                   │');
-  console.log('│  Ollama: ' + OLLAMA_HOST + '          │');
-  try {
-    const ips = Object.values(os.networkInterfaces())
-      .flat()
-      .filter(i => i && i.family === 'IPv4' && !i.internal);
-    if (ips.length) {
-      console.log('│  Na rede (outros aparelhos):                    │');
-      for (const i of ips) console.log('│    http://' + i.address + ':' + PORT + '           │');
-    }
-  } catch (e) {}
+  console.log('│  IA: Gemini ' + GEMINI_MODEL + '            │');
   console.log('└───────────────────────────────────────────────────┘');
 });

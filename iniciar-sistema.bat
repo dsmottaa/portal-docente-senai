@@ -11,7 +11,6 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":8000 .*LISTENING"') d
 echo [2/3] Iniciando "node server.js" em nova janela...
 start "Portal do Docente SENAI - Servidor" cmd /k node server.js
 
-echo [3/3] Verificando IA local (Ollama)... aguarde alguns segundos.
 timeout /t 2 /nobreak >nul
 
 start "" "http://localhost:8000"

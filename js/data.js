@@ -625,7 +625,7 @@ function SENAI_isLogged() {
 
 function SENAI_requireAuth() {
   if (!SENAI_isLogged()) {
-    window.location.replace('index.html');
+    window.location.replace('../index.html');
     return false;
   }
   return true;
@@ -674,6 +674,9 @@ async function SENAI_loginServer(login, senha) {
     SENAI_setAuthToken(json.token);
     return { ok: true, user: json.user };
   }
+  // Resposta sem JSON da nossa API (ex.: servidor estático / Live Server que
+  // responde 404 com HTML): tratar como indisponível para cair no modo offline.
+  if (!json) return { ok: false, offline: true };
   return { ok: false, status: res.status, error: (json && json.error) || 'Erro ao autenticar.' };
 }
 

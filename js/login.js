@@ -5,7 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (SENAI_isLogged()) {
-    window.location.href = 'dashboard.html';
+    window.location.href = 'pages/dashboard.html';
     return;
   }
   const temaLogin = localStorage.getItem('senai_tema');
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Smooth page transition
       document.body.classList.add('page-exit');
       setTimeout(() => {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'pages/dashboard.html';
       }, 600);
     }, 700);
   });

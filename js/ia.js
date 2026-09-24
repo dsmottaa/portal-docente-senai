@@ -1,7 +1,7 @@
 /**
  * ASSISTENTE IA - CHAT COM DADOS DA TURMA
  *  - Respostas locais rápidas para consultas estruturadas (offline-safe)
- *  - Perguntas livres respondidas pelo Ollama (qwen2.5:3b) via proxy /api/ai/chat
+ *  - Perguntas livres respondidas pelo Google Gemini (gemini-1.5-flash) via /api/chat
  *  - Memória de conversa, consultas de observações/ocorrências/reservas
  * Depende de data.js e auth.js.
  */
@@ -13,13 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const input     = document.getElementById('chatInput');
   const btnSend   = document.getElementById('btnChatSend');
   const chips     = document.querySelectorAll('.chat-chip');
-  const wrapper   = document.querySelector('.chat-wrapper');
   const btnLimpar = document.getElementById('btnLimparChat');
-  const btnPull   = document.getElementById('btnPullModel');
 
   const MAX_HISTORY = 16;
-  const DEFAULT_MODEL = 'qwen2.5:3b';
-  const AI_MODEL_KEY = 'senai_ai_model';
+  const MODEL_LABEL = 'gemini-3.6-flash';
   let history = [];
   let busy = false;
   let iaSubId = null;
@@ -35,54 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sub = (SENAI_loadSubTurmas() || []).find(x => String(x.id) === String(iaSubId));
     return sub ? `Sub ${sub.nome}` : null;
   }
-
-  // --- Seletor de modelo ---
-  const modelSelect = document.getElementById('modelSelect');
-  function populateModelSelect(models) {
-    if (!modelSelect) return;
-    const list = (Array.isArray(models) && models.length > 0) ? models : [DEFAULT_MODEL];
-    const pref = localStorage.getItem(AI_MODEL_KEY);
-    modelSelect.innerHTML = '<option value="">IA local...</option>' +
-      list.map(m => `<option value="${escHtml(m)}">${escHtml(m)}</option>`).join('');
-    if (pref && list.includes(pref)) modelSelect.value = pref;
-    else modelSelect.value = list.includes(DEFAULT_MODEL) ? DEFAULT_MODEL : (list[0] || '');
-  }
-  if (modelSelect) {
-    modelSelect.addEventListener('change', () => {
-      if (modelSelect.value) localStorage.setItem(AI_MODEL_KEY, modelSelect.value);
-    });
-  }
-
-  // --- Status do Ollama (chip no topo) ---
-  const statusChip = document.createElement('div');
-  statusChip.className = 'chat-status-chip offline';
-  statusChip.innerHTML = 'Verificando IA local...';
-  if (wrapper) wrapper.insertBefore(statusChip, chatEl);
-
-  function checkStatus() {
-    fetch('/api/ollama/status', { cache: 'no-store' })
-      .then(r => r.json())
-      .then(d => {
-        populateModelSelect(d.models);
-        if (d.ok && d.ollama && d.modelReady) {
-          setChip('online', `IA local conectada (${d.model}) &middot; ${d.latencyMs}ms`, d.models);
-        } else if (d.ok && d.ollama) {
-          setChip('warn', 'Ollama no ar, mas modelo qwen2.5:3b não baixado. Use "Baixar modelo IA".', d.models);
-        } else {
-          setChip('offline', 'IA local offline - usando apenas respostas rápidas', d.models);
-        }
-      })
-      .catch(() => setChip('offline', 'Servidor de IA não disponível - respostas rápidas'));
-  }
-
-  function setChip(clazz, text, models) {
-    statusChip.className = 'chat-status-chip ' + clazz;
-    statusChip.innerHTML = text;
-    statusChip.title = Array.isArray(models) ? models.join(', ') : '';
-    if (btnPull) btnPull.style.display = clazz === 'online' ? 'none' : 'inline-flex';
-  }
-
-  checkStatus();
 
   // --- Seletor de contexto (sub turma) ---
   const iaSubWrap = document.getElementById('iaSubWrap');
@@ -118,36 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
       history = [];
       chatEl.innerHTML = '';
       addBotMsg('Conversa reiniciada. Pergunte sobre a turma, frequência, notas, observações ou riscos.');
-    });
-  }
-
-  // --- BAIXAR MODELO (Ollama) ---
-  if (btnPull) {
-    btnPull.addEventListener('click', () => {
-      btnPull.disabled = true;
-      const original = btnPull.innerHTML;
-      btnPull.innerHTML = '<span>Baixando modelo...</span>';
-      addUserMsg('Baixar o modelo de IA local (qwen2.5:3b)');
-      const bubble = addBotMsg('<span class="chat-stream">Iniciando download do modelo. Isso pode levar alguns minutos...</span>');
-      const bubbleEl = bubble.querySelector('.chat-msg-bubble');
-
-      fetch('/api/ai/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-        .then(async res => {
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok || !data.ok) {
-            bubbleEl.innerHTML = 'Não foi possível baixar o modelo: ' + (data.error || 'erro desconhecido') + '. Verifique se o Ollama está em execução (iniciar-sistema.bat).';
-            return;
-          }
-          bubbleEl.innerHTML = 'Modelo <strong>qwen2.5:3b</strong> baixado com sucesso! A IA local já está pronta para consultas livres.';
-          checkStatus();
-        })
-        .catch(() => {
-          bubbleEl.innerHTML = 'Erro de conexão ao baixar o modelo. Verifique se o servidor está ativo (iniciar-sistema.bat).';
-        })
-        .finally(() => {
-          btnPull.disabled = false;
-          btnPull.innerHTML = original;
-        });
     });
   }
 
@@ -385,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `&#8226; <em>Próximas reservas da sala</em><br>` +
         `&#8226; <em>Destaques da turma</em> (melhor nota e frequência)<br>` +
         `&#8226; <em>Bancada 04</em> (consulta individual)<br><br>` +
-        `Plano de ação, média e análises são gerados pela <em>IA local (Ollama)</em> &mdash; pergunte em linguagem natural, ex.: "monte um plano de ação" ou "qual a média da turma?".`);
+        `Plano de ação, média e análises são gerados pela <em>IA (Google Gemini)</em> &mdash; pergunte em linguagem natural, ex.: "monte um plano de ação" ou "qual a média da turma?".`);
       return true;
     }
     if (lower.includes('resumo') || lower.includes('geral') || lower.includes('andamento geral')) {
@@ -403,8 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  // --- IA livre via Ollama (streaming, com memória) ---
-  function askOllama(q) {
+  // --- IA livre via Google Gemini (streaming, com memória) ---
+  function askGemini(q) {
     busy = true;
     if (btnSend) btnSend.disabled = true;
     const lista = iaStudents();
@@ -502,7 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const bubble = addBotMsg('<span class="chat-stream">Pensando...</span>');
     const bubbleEl = bubble.querySelector('.chat-msg-bubble');
 
-    const selectedModel = (modelSelect && modelSelect.value) || DEFAULT_MODEL;
     const t0 = Date.now();
 
     const lastMessages = history
@@ -510,21 +428,21 @@ document.addEventListener('DOMContentLoaded', () => {
       .filter(m => !m.summary)
       .map(m => ({ role: m.role, content: m.content }));
 
-    fetch('/api/ai/chat', {
+    fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: selectedModel,
-        context: context,
-        messages: lastMessages.length > 0 ? lastMessages : [{ role: 'user', content: q }]
+        message: q,
+        contextData: context,
+        history: lastMessages
       })
     }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        if (res.status === 503) {
-          bubbleEl.innerHTML = '<span style="color:#DC2626">Ollama não está em execução.</span> Para consultas livres, inicie o servidor com o <b>iniciar-sistema.bat</b>. Enquanto isso, use: resumo, risco, ausentes, observações, ocorrências, reservas, destaques ou ajuda.';
+        if (res.status === 503 || res.status === 401 || res.status === 429) {
+          bubbleEl.innerHTML = '<span style="color:#DC2626">' + escHtml(err.error || 'Serviço de IA indisponível') + '</span><br>Entre em contato com o suporte da coordenação ou tente novamente. Consultas rápidas continuam disponíveis: resumo, risco, ausentes, observações, ocorrências, reservas, destaques ou ajuda.';
         } else {
-          bubbleEl.innerHTML = 'Ocorreu um erro ao consultar a IA local: ' + escHtml(err.error || res.status) + '<br>Tente novamente ou use uma das consultas rápidas (ex.: "resumo geral").';
+          bubbleEl.innerHTML = 'Ocorreu um erro ao consultar a IA: ' + escHtml(err.error || res.status) + '<br>Tente novamente ou use uma das consultas rápidas (ex.: "resumo geral").';
         }
         return;
       }
@@ -560,41 +478,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
         const meta = document.createElement('div');
         meta.className = 'chat-stream-meta';
-        meta.textContent = `Respondido em ${elapsed}s · ${selectedModel}`;
-
-        const btnSalvar = document.createElement('button');
-        btnSalvar.type = 'button';
-        btnSalvar.className = 'chat-btn-save';
-        btnSalvar.textContent = 'Salvar no Mural';
-        btnSalvar.addEventListener('click', () => {
-          try {
-            const hoje = SENAI_todayKey();
-            SENAI_addComunicado({
-              titulo: `Plano de ação · ${hoje}`,
-              conteudo: resumo,
-              visibilidade: 'unidade'
-            });
-            btnSalvar.textContent = 'Salvo ✓';
-            btnSalvar.disabled = true;
-            if (window.showToast) showToast('Plano salvo no Mural.', 'success', 3000);
-          } catch (e) {
-            btnSalvar.textContent = 'Erro ao salvar';
-            if (window.showToast) showToast('Não foi possível salvar o plano.', 'error', 3500);
-          }
-        });
-
-        const metaRow = document.createElement('div');
-        metaRow.className = 'chat-stream-meta';
-        metaRow.style.marginTop = '8px';
-        metaRow.appendChild(meta);
-        metaRow.appendChild(btnSalvar);
-        bubbleEl.appendChild(metaRow);
+        meta.textContent = `Respondido em ${elapsed}s · ${MODEL_LABEL}`;
+        bubbleEl.appendChild(meta);
         chatEl.scrollTop = chatEl.scrollHeight;
       } else {
         bubbleEl.innerHTML = 'A IA não retornou texto. Tente reformular a pergunta.';
       }
     }).catch(() => {
-      bubbleEl.innerHTML = 'Não foi possível acessar a IA local. Verifique se o servidor está ativo (iniciar-sistema.bat) ou use as consultas rápidas: resumo, risco, ausentes, observações, ocorrências, reservas, destaque, ajuda.';
+      bubbleEl.innerHTML = 'Não foi possível acessar o serviço de IA. Verifique se o servidor está ativo (iniciar-sistema.bat) ou use as consultas rápidas: resumo, risco, ausentes, observações, ocorrências, reservas, destaque, ajuda.';
     }).finally(() => {
       busy = false;
       if (btnSend) btnSend.disabled = false;
@@ -606,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
       recordLastBot();
       return;
     }
-    askOllama(q);
+    askGemini(q);
   }
 
   function escHtml(s) {

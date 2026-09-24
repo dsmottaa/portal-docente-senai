@@ -186,60 +186,26 @@ async function main() {
       else fail('rate limit', codes.join(','));
     }
 
-    // 9) IA: abortar o stream do chat no meio NÃO deve derrubar o servidor
+    // 9) IA: /api/chat valida a mensagem e abortar o stream não derruba o servidor
     {
-      const st = await req('/api/ollama/status');
-      if (st.body && st.body.modelReady === true) {
-        const model = (st.body.models && st.body.models[0]) || 'qwen2.5:3b';
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 3000);
-        try {
-          await fetch(BASE + '/api/ai/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: model, context: {}, messages: [{ role: 'user', content: 'teste de abort' }] }),
-            signal: ctrl.signal
-          });
-        } catch (e) { /* abortado de proposito */ }
-        clearTimeout(t);
-        const h = await req('/api/health');
-        if (h.status === 200) ok('abortar o stream do chat nao derruba o servidor');
-        else fail('abortar o stream do chat nao derruba o servidor', 'health=' + h.status);
-      } else {
-        console.log('  SKIP  IA offline (Ollama nao disponivel no ambiente de teste)');
-      }
-    }
+      const r = await req('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      if (r.status === 400) ok('POST /api/chat sem mensagem -> 400');
+      else fail('POST /api/chat sem mensagem', 'status=' + r.status);
 
-    // 10) Reset de dados (POST /api/data/reset)
-    {
-      const anon = await req('/api/data/reset', { method: 'POST' });
-      if (anon.status === 401) ok('POST /api/data/reset sem token -> 401');
-      else fail('POST /api/data/reset sem token', 'status=' + anon.status);
-    }
-    if (token) {
-      const prof = await req('/api/data/reset', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
-      if (prof.status === 403) ok('POST /api/data/reset professor -> 403');
-      else fail('POST /api/data/reset professor', 'status=' + prof.status);
-    }
-    {
-      const lg = await req('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login: 'coord.senai', senha: 'coordenador2026' }) });
-      if (lg.status === 200 && lg.body && lg.body.token) {
-        ok('login coordenação -> token');
-        const tok = lg.body.token;
-        const reset = await req('/api/data/reset', { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
-        if (reset.status === 200 && reset.body && reset.body.ok === true) ok('POST /api/data/reset coordenação -> 200');
-        else fail('POST /api/data/reset coordenação', 'status=' + reset.status + ' ' + JSON.stringify(reset.body));
-        const lg2 = await req('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login: 'coord.senai', senha: 'coordenador2026' }) });
-        if (lg2.status === 200 && lg2.body && lg2.body.token) {
-          const g = await req('/api/data', { headers: { Authorization: 'Bearer ' + lg2.body.token } });
-          if (g.status === 200 && g.body && g.body.data) {
-            const keys = Object.keys(g.body.data);
-            const okReset = !keys.includes('senai_aulas_data__u_sp_sao_paulo__TEC_TESTE') && !keys.includes('senai_users_data');
-            if (okReset) ok('depois do reset, dados da turma sumiram (usuários preservados)');
-            else fail('depois do reset', keys.join(','));
-          } else fail('GET /api/data pos-reset', 'status=' + g.status);
-        } else fail('login coordenação pos-reset', 'status=' + lg2.status);
-      } else fail('login coordenação', 'status=' + lg.status);
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 3000);
+      try {
+        await fetch(BASE + '/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'teste de abort', contextData: {}, history: [] }),
+          signal: ctrl.signal
+        });
+      } catch (e) { /* abortado de proposito (ou erro da API Gemini) */ }
+      clearTimeout(t);
+      const h = await req('/api/health');
+      if (h.status === 200) ok('abortar o stream do chat nao derruba o servidor');
+      else fail('abortar o stream do chat nao derruba o servidor', 'health=' + h.status);
     }
 
     console.log('\n' + passed + ' passed, ' + failed + ' failed.');

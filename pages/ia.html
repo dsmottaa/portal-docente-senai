@@ -30,7 +30,7 @@
           </div>
         </div>
         <div id="syncStatus" class="sidebar-sync"></div>
-        <a href="index.html" class="btn-logout">
+        <a href="../index.html" class="btn-logout">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Sair</span>
         </a>
@@ -45,7 +45,7 @@
           </div>
           <div>
             <h1 class="feature-page-title">Assistente IA</h1>
-            <span class="feature-page-sub">Consulte dados da turma em linguagem natural</span>
+            <span class="feature-page-sub">Consulte dados da turma em linguagem natural com o Google Gemini</span>
           </div>
         </div>
         <div class="feature-header-actions">
@@ -55,14 +55,9 @@
               <option value="">Turma toda</option>
             </select>
           </span>
-          <select id="modelSelect" class="model-select" title="Modelo usado pela IA local (via Ollama)"></select>
           <button type="button" class="btn-outline" id="btnLimparChat">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
             <span>Limpar conversa</span>
-          </button>
-          <button type="button" class="btn-red-primary pull-model-btn" id="btnPullModel" title="Baixa o modelo qwen2.5:3b via Ollama (uma única vez)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span>Baixar modelo IA</span>
           </button>
         </div>
       </div>
@@ -92,7 +87,6 @@
 
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
   <script src="../js/sidebar.js"></script>
-  <script src="../js/theme.js"></script>
 
   <script src="../js/data.js"></script>
   <script src="../js/auth.js"></script>

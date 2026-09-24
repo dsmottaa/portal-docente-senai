@@ -2,7 +2,7 @@
   "name": "Portal do Docente SENAI",
   "short_name": "Portal SENAI",
   "description": "Sistema nacional de apoio ao docente SENAI: turmas, presença, notas, materiais didáticos e coordenação.",
-  "start_url": "/pages/index.html",
+  "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

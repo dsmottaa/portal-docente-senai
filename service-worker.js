@@ -4,9 +4,9 @@
  * network-first para as APIs (/api/*) para nunca perder sincronização.
  * Fontes do Google: cache-first com revalidação (funciona offline após 1ª visita).
  */
-const CACHE = 'portal-senai-v3';
+const CACHE = 'portal-senai-v5';
 const CORE = [
-  '/pages/index.html',
+  '/index.html',
   '/pages/dashboard.html',
   '/pages/turma.html',
   '/pages/diario.html',
@@ -114,7 +114,7 @@ self.addEventListener('fetch', (event) => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
         return res;
-      }).catch(() => cached || caches.match('/pages/index.html'));
+      }).catch(() => cached || caches.match('/index.html'));
       return cached || network;
     })
   );
