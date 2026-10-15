@@ -86,10 +86,17 @@
     grid.querySelectorAll('.cal-del-event').forEach(b => {
       b.addEventListener('click', e => {
         e.stopPropagation();
-        if (!window.confirm('Excluir este evento do calendário?')) return;
-        SENAI_deleteEventoCalendario(b.getAttribute('data-del'));
-        showToast('Evento excluído.', 'success');
-        render();
+        SENAI_showConfirm({
+          title: 'Excluir evento',
+          message: 'Excluir este evento do calendário?',
+          variant: 'danger',
+          confirmText: 'Excluir',
+          onConfirm: () => {
+            SENAI_deleteEventoCalendario(b.getAttribute('data-del'));
+            showToast('Evento excluído.', 'success');
+            render();
+          }
+        });
       });
     });
   }

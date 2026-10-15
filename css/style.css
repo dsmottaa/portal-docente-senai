@@ -52,14 +52,17 @@
 
 /* ─── Tema escuro ─── */
 [data-theme="dark"] {
-  --text-dark: #F1F5F9;
-  --text-body: #CBD5E1;
-  --text-muted: #94A3B8;
-  --text-light: #64748B;
-  --bg-dash: #0F172A;
-  --card-bg: #1E293B;
-  --border-color: #334155;
-  --border-light: #1E293B;
+  --text-dark: #FFFFFF;
+  --text-body: #FFFFFF;
+  --text-muted: #FFFFFF;
+  --text-light: #FFFFFF;
+  --bg-dash: #181818;
+  --card-bg: #252525;
+  --border-color: #3A3A3A;
+  --border-light: #2D2D2D;
+  --senai-red: #E31C23;
+  --senai-red-hover: #FF2D2D;
+  --senai-red-active: #C10510;
   --senai-red-light: #3B0A0A;
   --senai-red-pill: #450A0A;
   --success-light: #052E16;
@@ -72,6 +75,14 @@
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25);
   --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
+[data-theme="dark"] .modal-badge-icon.blue { background: rgba(37, 99, 235, 0.18); color: #93C5FD; }
+[data-theme="dark"] .btn-subtle { background: #2D2D2D; border-color: var(--border-color); color: var(--text-body); }
+[data-theme="dark"] .btn-subtle:hover { background: #3A3A3A; color: var(--text-dark); }
+[data-theme="dark"] .modal-input-light,
+[data-theme="dark"] .modal-textarea-light { background: #2D2D2D; border-color: var(--border-color); color: var(--text-dark); }
+[data-theme="dark"] .modal-input-light::placeholder,
+[data-theme="dark"] .modal-textarea-light::placeholder { color: #888888; }
+[data-theme="dark"] .modal-summary-box { background: #2D2D2D; }
 
 * {
   margin: 0;
@@ -427,7 +438,7 @@ input, textarea, select {
 .sidebar {
   width: 250px;
   flex-shrink: 0;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -570,7 +581,12 @@ input, textarea, select {
 .sidebar-footer {
   padding: 16px 16px 20px;
   border-top: 1px solid var(--border-color);
-  background: #FFFFFF;
+  background: var(--card-bg);
+}
+
+[data-theme="dark"] .sidebar-footer {
+  background: #252525;
+  border-top-color: #3A3A3A;
 }
 
 .sidebar-profile-card {
@@ -582,6 +598,15 @@ input, textarea, select {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   margin-bottom: 12px;
+}
+
+[data-theme="dark"] .sidebar-profile-card {
+  background: #2D2D2D;
+  border-color: #3A3A3A;
+}
+
+[data-theme="dark"] .btn-logout:hover {
+  background: #3B0A0A;
 }
 
 .avatar-ln {
@@ -634,6 +659,10 @@ input, textarea, select {
 .btn-logout:hover {
   color: var(--senai-red);
   background: #FFF1F2;
+}
+
+[data-theme="dark"] .btn-logout:hover {
+  background: #3B0A0A;
 }
 
 /* ---------- MAIN CONTENT AREA ---------- */
@@ -716,7 +745,7 @@ input, textarea, select {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 12px 18px;
@@ -776,7 +805,7 @@ input, textarea, select {
   align-items: center;
   gap: 8px;
   padding: 9px 15px;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 13px;
@@ -815,7 +844,7 @@ input, textarea, select {
   width: 38px;
   height: 38px;
   border-radius: var(--radius-md);
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
   display: flex;
@@ -833,7 +862,7 @@ input, textarea, select {
 
 /* ---------- WELCOME HERO BANNER ---------- */
 .welcome-card {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px 28px;
@@ -954,7 +983,7 @@ input, textarea, select {
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 12.5px;
@@ -1034,7 +1063,7 @@ input, textarea, select {
   width: 280px;
   height: 40px;
   padding: 0 80px 0 38px;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 12.5px;
@@ -1065,7 +1094,7 @@ input, textarea, select {
 .view-switch-group {
   display: flex;
   align-items: center;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 2px;
@@ -1232,7 +1261,7 @@ input, textarea, select {
 
 /* Card Individual de Aluno */
 .student-card {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 16px;
@@ -1314,7 +1343,7 @@ input, textarea, select {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #FFFFFF;
+  background: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1445,7 +1474,7 @@ input, textarea, select {
 }
 
 .footer-widget-card {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 16px 20px;
@@ -1519,7 +1548,7 @@ input, textarea, select {
 /* Empty State */
 .empty-state-card {
   grid-column: 1 / -1;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px dashed var(--border-color);
   border-radius: var(--radius-lg);
   padding: 48px 24px;
@@ -1572,7 +1601,7 @@ input, textarea, select {
 }
 
 .modal-card {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   padding: 30px;
@@ -1764,7 +1793,7 @@ input, textarea, select {
 }
 
 .turma-option-btn:hover {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border-color: #CBD5E1;
 }
 
@@ -1817,7 +1846,7 @@ input, textarea, select {
 .modal-input-light:focus,
 .modal-textarea-light:focus {
   border-color: var(--senai-red);
-  background: #FFFFFF;
+  background: var(--card-bg);
   box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.12);
 }
 
@@ -1877,7 +1906,7 @@ input, textarea, select {
 .toast-close {
   margin-left: auto;
   font-size: 18px;
-  color: #94A3B8;
+  color: #FFFFFF;
   transition: var(--transition-fast);
 }
 
@@ -2016,4 +2045,194 @@ input, textarea, select {
 
 @media (max-width: 560px) {
   .materias-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Configurações: Banner de Perfil ─── */
+.config-profile-banner {
+  background: linear-gradient(135deg, #E31C23 0%, #FF2D2D 100%);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.config-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.config-profile-avatar {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #FFFFFF;
+  font-size: 22px;
+  font-weight: 800;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.config-profile-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0 0 4px;
+}
+
+.config-profile-sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.config-sparkle {
+  color: #FFD700;
+}
+
+.config-btn-alterar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  color: #E31C23;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.config-btn-alterar:hover {
+  background: #F8F8F8;
+  transform: translateY(-1px);
+}
+
+/* ─── Configurações: Temas ─── */
+.config-themes-card {
+  padding: 24px;
+}
+
+.config-themes-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 4px;
+}
+
+.config-themes-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+
+.config-themes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.config-theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.config-theme-option:hover {
+  background: var(--border-light);
+}
+
+.config-theme-option.active {
+  border-color: var(--senai-red);
+  background: var(--senai-red-light);
+}
+
+.config-theme-preview {
+  width: 100%;
+  height: 80px;
+  border-radius: var(--radius-md);
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.config-theme-preview-sidebar {
+  width: 30%;
+  height: 100%;
+}
+
+.config-theme-preview-content {
+  flex: 1;
+  height: 100%;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-theme-preview-content::before {
+  content: '';
+  width: 60%;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.config-theme-preview-content::after {
+  content: '';
+  width: 80%;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.config-theme-system .config-theme-preview-sidebar { background: #1E293B; }
+.config-theme-system .config-theme-preview-content { background: #F8FAFC; }
+.config-theme-system .config-theme-preview-content::before { background: #CBD5E1; }
+.config-theme-system .config-theme-preview-content::after { background: #E2E8F0; }
+
+.config-theme-light .config-theme-preview-sidebar { background: #FFFFFF; }
+.config-theme-light .config-theme-preview-content { background: #F8FAFC; }
+.config-theme-light .config-theme-preview-content::before { background: #CBD5E1; }
+.config-theme-light .config-theme-preview-content::after { background: #E2E8F0; }
+
+.config-theme-dark .config-theme-preview-sidebar { background: #252525; }
+.config-theme-dark .config-theme-preview-content { background: #181818; }
+.config-theme-dark .config-theme-preview-content::before { background: #A0A0A0; }
+.config-theme-dark .config-theme-preview-content::after { background: #3A3A3A; }
+
+.config-theme-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+[data-theme="dark"] .config-theme-option:hover {
+  background: #2D2D2D;
+}
+
+[data-theme="dark"] .config-theme-option.active {
+  background: #3B0A0A;
+}
+
+@media (max-width: 560px) {
+  .config-themes-grid { grid-template-columns: 1fr; }
+  .config-profile-banner { padding: 20px; }
+  .config-profile-avatar { width: 48px; height: 48px; font-size: 18px; }
+  .config-profile-title { font-size: 20px; }
 }

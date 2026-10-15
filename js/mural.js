@@ -62,10 +62,17 @@
 
     list.querySelectorAll('[data-del]').forEach(b => {
       b.addEventListener('click', () => {
-        if (!window.confirm('Excluir este comunicado do mural?')) return;
-        SENAI_deleteComunicado(b.getAttribute('data-del'));
-        showToast('Comunicado excluído.', 'success');
-        render();
+        SENAI_showConfirm({
+          title: 'Excluir comunicado',
+          message: 'Excluir este comunicado do mural?',
+          variant: 'danger',
+          confirmText: 'Excluir',
+          onConfirm: () => {
+            SENAI_deleteComunicado(b.getAttribute('data-del'));
+            showToast('Comunicado excluído.', 'success');
+            render();
+          }
+        });
       });
     });
   }

@@ -123,12 +123,19 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       div.querySelector('.btn-excluir').addEventListener('click', () => {
-        if (!confirm('Excluir esta ocorrência?')) return;
-        ocorrencias = ocorrencias.filter(x => x.id !== o.id);
-        SENAI_saveOcorrencias(ocorrencias);
-        showToast('Ocorrência excluída.', 'info');
-        renderStats();
-        renderList();
+        SENAI_showConfirm({
+          title: 'Excluir ocorrência',
+          message: 'Excluir esta ocorrência?',
+          variant: 'danger',
+          confirmText: 'Excluir',
+          onConfirm: () => {
+            ocorrencias = ocorrencias.filter(x => x.id !== o.id);
+            SENAI_saveOcorrencias(ocorrencias);
+            showToast('Ocorrência excluída.', 'info');
+            renderStats();
+            renderList();
+          }
+        });
       });
 
       listEl.appendChild(div);

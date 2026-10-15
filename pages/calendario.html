@@ -75,33 +75,40 @@
   <div id="modalNovoEvento" class="modal-backdrop" aria-hidden="true">
     <div class="modal-card">
       <button type="button" class="modal-close" data-close-modal>&times;</button>
-      <h2 class="modal-title">Novo evento no calendário</h2>
-      <p class="modal-subtitle" id="modalEventoUnidade">Alcance: visível para todas as unidades do portal.</p>
-      <div class="mat-field">
-        <label for="calData">Data</label>
-        <input type="date" id="calData" class="modal-input-light">
-      </div>
-      <div class="mat-grid-2">
-        <div class="mat-field">
-          <label for="calTitulo">Título</label>
-          <input type="text" id="calTitulo" class="modal-input-light" placeholder="Ex.: Prova bimestral de Automação" autocomplete="off">
+      <div class="modal-header">
+        <div class="modal-badge-icon blue">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </div>
-        <div class="mat-field">
-          <label for="calTipo">Tipo</label>
-          <select id="calTipo" class="modal-input-light">
-            <option value="feriado">Feriado</option>
-            <option value="prova">Prova / Avaliação</option>
-            <option value="recesso">Recesso</option>
-            <option value="evento">Evento</option>
+        <h2>Novo evento no calendário</h2>
+        <p class="modal-subtitle" id="modalEventoUnidade">Alcance: visível para todas as unidades do portal.</p>
+      </div>
+      <div class="modal-form">
+        <div class="form-field-group">
+          <label class="modal-label" for="calData">Data</label>
+          <input type="date" id="calData" class="modal-input-light">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-field-group">
+            <label class="modal-label" for="calTitulo">Título</label>
+            <input type="text" id="calTitulo" class="modal-input-light" placeholder="Ex.: Prova bimestral de Automação" autocomplete="off">
+          </div>
+          <div class="form-field-group">
+            <label class="modal-label" for="calTipo">Tipo</label>
+            <select id="calTipo" class="modal-input-light">
+              <option value="feriado">Feriado</option>
+              <option value="prova">Prova / Avaliação</option>
+              <option value="recesso">Recesso</option>
+              <option value="evento">Evento</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field-group">
+          <label class="modal-label" for="calEscopo">Visibilidade</label>
+          <select id="calEscopo" class="modal-input-light">
+            <option value="nacional">Nacional (todas as unidades)</option>
+            <option value="local">Somente a minha unidade</option>
           </select>
         </div>
-      </div>
-      <div class="mat-field">
-        <label for="calEscopo">Visibilidade</label>
-        <select id="calEscopo" class="modal-input-light">
-          <option value="nacional">Nacional (todas as unidades)</option>
-          <option value="local">Somente a minha unidade</option>
-        </select>
       </div>
       <div class="modal-actions-row">
         <button type="button" class="btn-subtle" data-close-modal>Cancelar</button>
@@ -114,7 +121,21 @@
   <script src="../js/sidebar.js"></script>
 
   <script src="../js/data.js"></script>
+  <script src="../js/theme.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/confirm-modal.js"></script>
   <script src="../js/calendario.js"></script>
+
+  <!-- Widget VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
 </body>
 </html>

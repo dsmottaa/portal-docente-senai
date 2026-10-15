@@ -223,23 +223,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const C = 2 * Math.PI * 42;
     const dashPresent = (presentPct / 100) * C;
 
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const trackColor = isDark ? '#3A3A3A' : '#E2E8F0';
+    const textColor = isDark ? '#FFFFFF' : '#0F172A';
+    const subTextColor = isDark ? '#FFFFFF' : '#64748B';
+    const legendAusentesColor = isDark ? '#3A3A3A' : '#E2E8F0';
+
     row.innerHTML = `
       <div class="chart-card" id="notaChartCard"></div>
       <div class="chart-card">
         <h3>Presença de Hoje</h3>
         <span class="chart-sub">${compareceram} compareceram &middot; ${atrasados} atrasado(s) &middot; ${ausentes} ausente(s) &middot; ${grupoLabel()}</span>
         <svg viewBox="0 0 120 120" width="110" height="110" style="margin:0 auto;display:block;width:110px;max-width:110px">
-          <circle cx="60" cy="60" r="42" fill="none" stroke="#E2E8F0" stroke-width="14"></circle>
+          <circle cx="60" cy="60" r="42" fill="none" stroke="${trackColor}" stroke-width="14"></circle>
           <circle cx="60" cy="60" r="42" fill="none" stroke="#059669" stroke-width="14" stroke-linecap="round"
             stroke-dasharray="${dashPresent.toFixed(1)} ${C.toFixed(1)}"
             transform="rotate(-90 60 60)"></circle>
-          <text x="60" y="58" text-anchor="middle" font-size="22" font-weight="800" fill="#0F172A">${presentPct}%</text>
-          <text x="60" y="76" text-anchor="middle" font-size="10" fill="#64748B">presentes</text>
+          <text x="60" y="58" text-anchor="middle" font-size="22" font-weight="800" fill="${textColor}">${presentPct}%</text>
+          <text x="60" y="76" text-anchor="middle" font-size="10" fill="${subTextColor}">presentes</text>
         </svg>
         <div class="chart-legend">
           <span><i style="background:#059669"></i> Presentes (${compareceram})</span>
           <span><i style="background:#D97706"></i> Atrasados (${atrasados})</span>
-          <span><i style="background:#E2E8F0"></i> Ausentes (${ausentes})</span>
+          <span><i style="background:${legendAusentesColor}"></i> Ausentes (${ausentes})</span>
         </div>
       </div>`;
 
@@ -548,11 +554,18 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => {
         const post = posts.find(x => x.id === btn.dataset.id);
         if (!post) return;
-        if (!confirm(`Excluir a postagem "${post.titulo}"?`)) return;
-        SENAI_deleteClassroomPost(post.id);
-        playTone(240, 'square', 0.1, 0.04);
-        showToast('Postagem excluída.', 'info', 2200);
-        renderClassroom();
+        SENAI_showConfirm({
+          title: 'Excluir postagem',
+          message: `Excluir a postagem "${post.titulo}"?`,
+          variant: 'danger',
+          confirmText: 'Excluir',
+          onConfirm: () => {
+            SENAI_deleteClassroomPost(post.id);
+            playTone(240, 'square', 0.1, 0.04);
+            showToast('Postagem excluída.', 'info', 2200);
+            renderClassroom();
+          }
+        });
       });
     });
   }

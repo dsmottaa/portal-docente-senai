@@ -77,6 +77,9 @@
     <div class="modal-card modal-lg">
       <button type="button" class="modal-close" data-close-modal>&times;</button>
       <div class="aluno-modal-header">
+        <div class="modal-badge-icon blue">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
         <div class="aluno-modal-avatar" id="alunoModalAvatar">--</div>
         <div class="aluno-modal-id">
           <h2 id="alunoModalName">Aluno</h2>
@@ -133,23 +136,25 @@
   <div id="modalNovaJustif" class="modal-backdrop" aria-hidden="true">
     <div class="modal-card modal-sm">
       <button type="button" class="modal-close" data-close-modal>&times;</button>
-      <h2 class="modal-title">Justificativa de falta</h2>
-      <p class="modal-subtitle">Registre uma justificativa de falta para a data indicada. O anexo é opcional e fica salvo neste dispositivo e no servidor (sincronização nacional).</p>
-      <div class="justif-form">
-        <div class="mat-field">
-          <label for="justifData">Data da falta</label>
+      <div class="modal-header">
+        <div class="modal-badge-icon red">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+        </div>
+        <h2 class="modal-title">Justificativa de falta</h2>
+        <p class="modal-subtitle">Registre uma justificativa de falta para a data indicada. O anexo é opcional e fica salvo neste dispositivo e no servidor (sincronização nacional).</p>
+      </div>
+      <div class="modal-form">
+        <div class="form-field-group">
+          <label class="modal-label" for="justifData">Data da falta</label>
           <input type="date" id="justifData" class="modal-input-light">
         </div>
-        <div class="mat-field">
-          <label for="justifMotivo">Motivo</label>
+        <div class="form-field-group">
+          <label class="modal-label" for="justifMotivo">Motivo</label>
           <textarea id="justifMotivo" class="modal-textarea-light" rows="3" placeholder="Ex.: atestado médico para a data informada (anexar documento)." autocomplete="off"></textarea>
         </div>
-        <div class="mat-field">
-          <label for="justifAnexo">Anexo (opcional &mdash; máx. ~2 MB)</label>
-          <input type="file" id="justifAnexo" class="mat-file-input" accept=".pdf,.png,.jpg,.jpeg,.webp">
-          <div class="mat-file-drop" id="justifAnexoDrop">
-            <p id="justifAnexoLabel">Clique para anexar atestado / comprovante</p>
-          </div>
+        <div class="form-field-group">
+          <label class="modal-label" for="justifAnexo">Anexo (opcional &mdash; máx. ~2 MB)</label>
+          <input type="file" id="justifAnexo" class="modal-input-light" accept=".pdf,.png,.jpg,.jpeg,.webp">
           <div class="justif-anexo-info" id="justifAnexoInfo"></div>
         </div>
       </div>
@@ -164,7 +169,21 @@
   <script src="../js/sidebar.js"></script>
 
   <script src="../js/data.js"></script>
+  <script src="../js/theme.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/confirm-modal.js"></script>
   <script src="../js/carometro.js"></script>
+
+  <!-- Widget VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
 </body>
 </html>

@@ -131,12 +131,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnDeleteReserva').addEventListener('click', () => {
     const id = Number(document.getElementById('rvId').value) || document.getElementById('rvId').value;
     const r = reservas.find(x => x.id === id);
-    if (r && confirm(`Excluir a reserva de ${r.turma} (${r.inicio}–${r.fim})?`)) {
-      SENAI_deleteReserva(id);
-      reservas.splice(reservas.findIndex(x => x.id === id), 1);
-      showToast('Reserva excluída.', 'info');
-      closeModal();
-      renderAgenda();
+    if (r) {
+      SENAI_showConfirm({
+        title: 'Excluir reserva',
+        message: `Excluir a reserva de ${r.turma} (${r.inicio}–${r.fim})?`,
+        variant: 'danger',
+        confirmText: 'Excluir',
+        onConfirm: () => {
+          SENAI_deleteReserva(id);
+          reservas.splice(reservas.findIndex(x => x.id === id), 1);
+          showToast('Reserva excluída.', 'info');
+          closeModal();
+          renderAgenda();
+        }
+      });
     }
   });
 

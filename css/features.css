@@ -689,6 +689,315 @@
   white-space: nowrap;
 }
 
+/* ─── Lista de chamada em tabela (carômetro) ─── */
+.carometro-grid > .carometro-list { grid-column: 1 / -1; }
+
+.carometro-list {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.carometro-table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+  table-layout: fixed;
+}
+
+.carometro-table .c-aluno    { width: auto; }
+.carometro-table .c-bancada  { width: 116px; }
+.carometro-table .c-presenca { width: 124px; }
+.carometro-table .c-freq     { width: 84px; }
+.carometro-table .c-nota     { width: 72px; }
+.carometro-table .c-obs      { width: 268px; }
+
+.carometro-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-dash);
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.carometro-table thead th.is-num { text-align: right; }
+
+.cp-hint {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-light);
+}
+
+.carometro-table tbody td {
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-dark);
+  vertical-align: middle;
+}
+.carometro-table tbody td.is-num { text-align: right; }
+.carometro-table tbody tr:last-child td { border-bottom: none; }
+
+.carometro-row { cursor: pointer; transition: var(--transition-fast); outline: none; }
+.carometro-row:hover { background: var(--bg-dash); }
+.carometro-row:focus-visible td { box-shadow: inset 0 0 0 2px rgba(227, 6, 19, 0.45); }
+.carometro-row.is-absent { background: color-mix(in srgb, var(--danger-red) 5%, transparent); }
+.carometro-row.is-late { background: color-mix(in srgb, var(--warning-amber) 8%, transparent); }
+.carometro-row.is-absent:hover { background: var(--danger-light); }
+.carometro-row.is-late:hover { background: var(--warning-light); }
+
+.carometro-row td:first-child { box-shadow: inset 3px 0 0 var(--success-green); }
+.carometro-row.is-absent td:first-child { box-shadow: inset 3px 0 0 var(--danger-red); }
+.carometro-row.is-late td:first-child { box-shadow: inset 3px 0 0 var(--warning-amber); }
+
+.carometro-list-aluno {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.carometro-list-avatar {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--senai-red-light);
+  color: var(--senai-red);
+  border: 1.5px solid var(--senai-red);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.carometro-row.is-absent .carometro-list-avatar {
+  background: var(--danger-light);
+  color: var(--danger-red);
+  border-color: var(--danger-red);
+}
+.carometro-row.is-late .carometro-list-avatar {
+  background: var(--warning-light);
+  color: #B45309;
+  border-color: #D97706;
+}
+
+.carometro-list-name {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  background: transparent;
+  border: none;
+  padding: 2px 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carometro-list-name:hover { color: var(--senai-red); text-decoration: underline; }
+
+.carometro-list-bancada {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-dash);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.carometro-table .carometro-status { margin-top: 0; vertical-align: middle; }
+
+.carometro-list-freq,
+.carometro-list-nota {
+  font-size: 12.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.carometro-list-freq.green,
+.carometro-list-nota.good { color: var(--success-green); }
+.carometro-list-freq.amber,
+.carometro-list-nota.warn { color: var(--warning-amber); }
+.carometro-list-freq.red,
+.carometro-list-nota.bad { color: var(--danger-red); }
+
+.carometro-list-obs {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carometro-list-obs.has-obs { color: #92400E; font-weight: 600; }
+[data-theme="dark"] .carometro-list-obs.has-obs { color: #FCD34D; }
+
+/* ─── Pré-visualização do aluno no hover do nome ─── */
+.carometro-preview {
+  position: fixed;
+  z-index: 3000;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  padding: 14px;
+}
+.carometro-preview.visible { display: flex; }
+
+.cp-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.cp-close:hover { color: var(--danger-red); }
+
+.cp-head { display: flex; align-items: center; gap: 10px; padding-right: 22px; }
+.cp-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: var(--radius-full);
+  background: var(--senai-red-light);
+  color: var(--senai-red);
+  border: 2px solid var(--senai-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  overflow: hidden;
+  line-height: 1;
+}
+.cp-avatar.is-absent { background: var(--danger-light); color: var(--danger-red); border-color: var(--danger-red); }
+.cp-avatar.is-late { background: var(--warning-light); color: #B45309; border-color: #D97706; }
+.cp-avatar .cp-foto { object-fit: cover; width: 100%; height: 100%; border-radius: inherit; }
+.cp-id { min-width: 0; }
+.cp-name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1.25;
+}
+.cp-meta { display: block; font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+.cp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp-chip {
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.cp-chip.chip-good { background: var(--success-light); color: #15803D; border: 1px solid var(--success-border); }
+.cp-chip.chip-warn { background: var(--warning-light); color: #B45309; border: 1px solid var(--warning-border); }
+.cp-chip.chip-bad { background: var(--danger-light); color: var(--danger-red); border: 1px solid var(--danger-border); }
+
+.cp-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg-dash);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+.cp-status-label { font-size: 11.5px; font-weight: 700; color: var(--text-body); }
+.cp-status {
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+}
+
+.cp-obs-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+.cp-obs {
+  font-family: inherit;
+  width: 100%;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-dark);
+  background: var(--bg-dash);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 7px 9px;
+  resize: vertical;
+  outline: none;
+}
+.cp-obs:focus { border-color: var(--senai-red); }
+
+.cp-actions { display: flex; gap: 6px; }
+.cp-abrir,
+.cp-save {
+  flex: 1;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-body);
+  transition: var(--transition-fast);
+}
+.cp-abrir:hover { border-color: var(--senai-red); color: var(--senai-red); }
+.cp-save { background: var(--senai-red); border-color: var(--senai-red); color: #FFFFFF; }
+.cp-save:hover { background: var(--senai-red-hover); border-color: var(--senai-red-hover); }
+
 /* ─── Modal completo por aluno (carômetro) ─── */
 .aluno-modal-header {
   display: flex;
@@ -1211,7 +1520,7 @@
 .chat-status-chip.online  { color: #065F46; background: #ECFDF5; border-color: #A7F3D0; }
 .chat-status-chip.offline { color: #6B7280; background: #F3F4F6; border-color: #E5E7EB; }
 .chat-status-chip.warn    { color: #92400E; background: #FFFBEB; border-color: #FDE68A; }
-.chat-stream { color: #64748B; font-style: italic; }
+.chat-stream { color: var(--text-muted); font-style: italic; }
 
 .chat-wrapper {
   display: flex;
@@ -2391,13 +2700,13 @@
 
 .cal-cell.is-today {
   border-color: var(--senai-red);
-  background: #fff5f5;
+  background: var(--senai-red-light);
 }
 
 .cal-cell.is-selected {
   border-color: var(--senai-red);
   box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.25);
-  background: #fff0f1;
+  background: var(--senai-red-light);
 }
 
 .cal-cell .cal-day-num {
@@ -2746,7 +3055,7 @@
   font-size: 10.5px;
   font-weight: 700;
   color: var(--sub, var(--text-dark));
-  background: color-mix(in srgb, var(--sub, var(--senai-red)) 12%, #fff);
+  background: color-mix(in srgb, var(--sub, var(--senai-red)) 12%, var(--card-bg));
   border: 1px solid color-mix(in srgb, var(--sub, var(--senai-red)) 40%, transparent);
   border-radius: var(--radius-full);
   padding: 2px 9px;
@@ -2788,6 +3097,22 @@
 
 .subturma-search {
   margin-bottom: 8px;
+}
+
+.subturma-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 4px 0;
+}
+
+.subturma-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .subturma-pick {
@@ -2846,7 +3171,7 @@
 .ctx-select {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--card-bg);
   color: var(--text-dark);
   font-size: 12px;
   font-weight: 700;
@@ -2932,7 +3257,7 @@
   gap: 12px;
   flex-wrap: wrap;
   margin: 18px 0 12px;
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 10px 14px;
@@ -2940,7 +3265,7 @@
 .chip-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .chip {
   border: 1px solid var(--border-color);
-  background: #FFFFFF;
+  background: var(--card-bg);
   color: var(--text-light);
   font-size: 12px;
   font-weight: 600;
@@ -2961,7 +3286,7 @@
   gap: 14px;
 }
 .mat-card {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 16px;
@@ -3037,7 +3362,7 @@
   align-items: center;
   gap: 8px;
 }
-.mat-empty svg { color: #CBD5E1; margin-bottom: 6px; }
+.mat-empty svg { color: var(--text-light); margin-bottom: 6px; }
 .mat-empty p { font-size: 13.5px; line-height: 1.5; }
 
 .mat-field { margin-bottom: 14px; }
@@ -3096,7 +3421,7 @@
 @media (max-width: 900px) { .preaula-row { grid-template-columns: 1fr; } }
 .panel-alertas,
 .panel-sync {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 14px 16px;
@@ -3118,7 +3443,7 @@
   color: var(--text-light);
   margin-bottom: 8px;
 }
-.proj-sep { color: #CBD5E1; }
+.proj-sep { color: var(--text-light); }
 .alerta-item {
   display: flex;
   gap: 8px;
@@ -3126,7 +3451,7 @@
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: #FAFBFD;
+  background: var(--bg-dash);
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--text-dark);
@@ -3665,6 +3990,8 @@
 [data-theme="dark"] .central-table th { color: var(--text-body); border-color: var(--border-color); }
 [data-theme="dark"] .central-kpi { background: var(--card-bg); }
 [data-theme="dark"] .central-kpi-val { color: var(--text-dark); }
+[data-theme="dark"] .reserva-conflict { border-color: var(--danger-border); }
+[data-theme="dark"] .btn-delete { border-color: var(--danger-border); }
 
 /* ─── Impressão amigável ─── */
 @media print {

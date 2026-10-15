@@ -56,6 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── LISTA DA TURMA (chamada em lista) ──
+  function iniciais(nome) {
+    const partes = String(nome || '').trim().split(/\s+/).filter(Boolean);
+    if (!partes.length) return '--';
+    if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  }
+
   function renderGrid() {
     const vis = displayStudents();
     const filtered = vis.filter(s => {
@@ -69,41 +76,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     grid.innerHTML = `
       <div class="carometro-list">
-        <div class="carometro-list-head">
-          <span>Aluno <small class="cp-hint">(passe o cursor sobre o nome)</small></span>
-          <span class="col-bancada">Bancada</span>
-          <span class="col-status">Presença</span>
-          <span class="col-freq">Freq.</span>
-          <span class="col-nota">Nota</span>
-          <span class="col-obs">Observações</span>
-        </div>
-        ${filtered.map(s => {
-          const st = s.status;
-          const cls = st === 'absent' ? 'is-absent' : (st === 'late' ? 'is-late' : 'is-present');
-          const freqColor = s.freq < 75 ? 'red' : s.freq < 90 ? 'amber' : 'green';
-          const notaColor = Number(s.nota) < 60 ? 'bad' : Number(s.nota) < 80 ? 'warn' : 'good';
-          const obs = s.observacoes && s.observacoes.trim();
-          const obsShort = obs ? (obs.length > 60 ? obs.slice(0, 57) + '...' : obs) : '';
-          const avatarHtml = s.photo
-            ? `<img class="carometro-list-avatar carometro-foto" src="${escHtml(s.photo)}" alt="">`
-            : `<div class="carometro-list-avatar">${escHtml(s.avatar)}</div>`;
-          return `
-          <div class="carometro-row ${cls}" data-id="${escHtml(s.id)}">
-            <div class="carometro-list-aluno">
-              ${avatarHtml}
-              <button type="button" class="carometro-list-name" data-preview-id="${escHtml(s.id)}" title="${escHtml(s.name)}">${escHtml(s.name)}</button>
-            </div>
-            <span class="carometro-list-bancada">${escHtml(s.bancada)}</span>
-            <span class="carometro-status ${st === 'absent' ? 'ausente' : st === 'late' ? 'atrasado' : 'presente'}">${st === 'absent' ? 'Ausente' : st === 'late' ? 'Atrasado' : 'Presente'}</span>
-            <span class="carometro-list-freq ${freqColor}">${s.freq}%</span>
-            <span class="carometro-list-nota ${notaColor}">${Number(s.nota) || 0}</span>
-            <span class="carometro-list-obs" title="${escHtml(obs || '')}">${obs ? escHtml(obsShort) : '—'}</span>
-          </div>`;
-        }).join('')}
+        <table class="carometro-table">
+          <colgroup>
+            <col class="c-aluno">
+            <col class="c-bancada">
+            <col class="c-presenca">
+            <col class="c-freq">
+            <col class="c-nota">
+            <col class="c-obs">
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" class="col-aluno">Aluno <small class="cp-hint">(passe o cursor sobre o nome)</small></th>
+              <th scope="col" class="col-bancada">Bancada</th>
+              <th scope="col" class="col-presenca">Presença</th>
+              <th scope="col" class="col-freq is-num">Freq.</th>
+              <th scope="col" class="col-nota is-num">Nota</th>
+              <th scope="col" class="col-obs">Observações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(s => {
+              const st = s.status;
+              const cls = st === 'absent' ? 'is-absent' : (st === 'late' ? 'is-late' : 'is-present');
+              const freqColor = s.freq < 75 ? 'red' : s.freq < 90 ? 'amber' : 'green';
+              const notaColor = Number(s.nota) < 60 ? 'bad' : Number(s.nota) < 80 ? 'warn' : 'good';
+              const obs = s.observacoes && s.observacoes.trim();
+              const obsShort = obs ? (obs.length > 60 ? obs.slice(0, 57) + '...' : obs) : '';
+              const statusLabel = st === 'absent' ? 'Ausente' : st === 'late' ? 'Atrasado' : 'Presente';
+              const statusCls = st === 'absent' ? 'ausente' : st === 'late' ? 'atrasado' : 'presente';
+              const avatarHtml = s.photo
+                ? `<span class="carometro-list-avatar"><img class="carometro-foto" src="${escHtml(s.photo)}" alt=""></span>`
+                : `<span class="carometro-list-avatar is-initials">${escHtml(iniciais(s.name))}</span>`;
+              return `
+              <tr class="carometro-row ${cls}" data-id="${escHtml(s.id)}" tabindex="0">
+                <td class="col-aluno">
+                  <div class="carometro-list-aluno">
+                    ${avatarHtml}
+                    <button type="button" class="carometro-list-name" data-preview-id="${escHtml(s.id)}" title="${escHtml(s.name)} — clique para abrir a ficha">${escHtml(s.name)}</button>
+                  </div>
+                </td>
+                <td class="col-bancada"><span class="carometro-list-bancada">${escHtml(s.bancada)}</span></td>
+                <td class="col-presenca"><span class="carometro-status ${statusCls}">${statusLabel}</span></td>
+                <td class="col-freq is-num"><span class="carometro-list-freq ${freqColor}">${s.freq}%</span></td>
+                <td class="col-nota is-num"><span class="carometro-list-nota ${notaColor}">${Number(s.nota) || 0}</span></td>
+                <td class="col-obs"><span class="carometro-list-obs${obs ? ' has-obs' : ''}" title="${escHtml(obs || '')}">${obs ? escHtml(obsShort) : '—'}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
       </div>`;
 
     grid.querySelectorAll('.carometro-row').forEach(row => {
       row.addEventListener('click', () => openAlunoModal(row.dataset.id));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAlunoModal(row.dataset.id); }
+      });
     });
     grid.querySelectorAll('.carometro-list-name').forEach(nameEl => {
       nameEl.addEventListener('mouseenter', () => previewShow(nameEl.dataset.previewId, nameEl));
@@ -156,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const av = previewTip.querySelector('.cp-avatar');
     av.className = 'cp-avatar ' + (s.status === 'absent' ? 'is-absent' : s.status === 'late' ? 'is-late' : 'is-present');
-    av.innerHTML = s.photo ? `<img class="cp-foto" src="${escHtml(s.photo)}" alt="">` : escHtml(s.avatar);
+    av.innerHTML = s.photo ? `<img class="cp-foto" src="${escHtml(s.photo)}" alt="">` : escHtml(iniciais(s.name));
 
     previewTip.querySelector('.cp-name').textContent = s.name;
     previewTip.querySelector('.cp-meta').textContent = `Matrícula ${s.matricula} · Bancada ${s.bancada}`;
@@ -179,8 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const obsEl = previewTip.querySelector('.cp-obs');
     if (document.activeElement !== obsEl) obsEl.value = s.observacoes || '';
 
-    positionPreview(anchor);
     previewTip.classList.add('visible');
+    positionPreview(anchor);
   }
 
   function positionPreview(anchor) {
@@ -333,7 +361,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const status = ok ? 'aprovado' : 'negado';
     const s = getAluno();
     if (!s) return;
-    if (status === 'negado' && !window.confirm('Rejeitar esta justificativa do aluno?')) return;
+    if (status === 'negado') {
+      SENAI_showConfirm({
+        title: 'Rejeitar justificativa',
+        message: 'Rejeitar esta justificativa do aluno?',
+        variant: 'danger',
+        confirmText: 'Rejeitar',
+        onConfirm: () => {
+          SENAI_revisarJustificativa(s.id, justId, status);
+          students = SENAI_loadStudents();
+          const aprovado = status === 'aprovado';
+          showToast(`Justificativa ${aprovado ? 'aprovada, falta abonada' : 'rejeitada'}.`, aprovado ? 'success' : 'info');
+          currentAlunoId = s.id;
+          renderJustificativas();
+          renderStats();
+          renderGrid();
+        }
+      });
+      return;
+    }
     SENAI_revisarJustificativa(s.id, justId, status);
     students = SENAI_loadStudents();
     const aprovado = status === 'aprovado';
@@ -426,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatar = el('alunoModalAvatar');
     if (avatar) {
       avatar.className = 'aluno-modal-avatar ' + (s.status === 'absent' ? 'is-absent' : s.status === 'late' ? 'is-late' : 'is-present');
-      avatar.innerHTML = s.photo ? `<img class="aluno-modal-foto" src="${escHtml(s.photo)}" alt="">` : s.avatar;
+      avatar.innerHTML = s.photo ? `<img class="aluno-modal-foto" src="${escHtml(s.photo)}" alt="">` : escHtml(iniciais(s.name));
     }
     if (el('alunoModalName')) el('alunoModalName').textContent = s.name;
     if (el('alunoModalMeta')) el('alunoModalMeta').textContent = `Matrícula ${s.matricula} · Bancada ${s.bancada}`;

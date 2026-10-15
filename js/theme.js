@@ -3,9 +3,12 @@
  * Carregado em todas as páginas. Gerenciador único de tema:
  *  - data-theme="dark|light" (modo escuro persistente)
  *  - variáveis --accent* definidas inline no <html> (cor do usuário)
+ *  - escolha do usuário: localStorage 'senai_tema_escolha' ('light'|'dark'|'system')
+ *  - tema resolvido aplicado: 'senai_tema_resolvido' ('light'|'dark')
  * Exposições globais:
  *  - SENAI_aplicarTemaCompleto()  aplica tema + cor + atualiza botões
- *  - SENAI_toggleTema()           alterna claro/escuro
+ *  - SENAI_toggleTema()           alterna claro/escuro (sai do 'system')
+ *  - SENAI_definirTema(tema)      define 'light'|'dark'|'system'
  *  - SENAI_setCor(hex)            salva e aplica a cor do usuário
  *  - SENAI_CORES                  presets exibidos nas Configurações
  *  - SENAI_COR_ATUAL()            cor escolhida atualmente
@@ -56,13 +59,41 @@
     return COR_PADRAO;
   }
 
-  function temaAtual() {
-    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  function temaEscolha() {
+    try {
+      return localStorage.getItem('senai_tema_escolha') || 'light';
+    } catch (e) {
+      return 'light';
+    }
+  }
+
+  function temaResolvido() {
+    try {
+      return localStorage.getItem('senai_tema_resolvido') || 'light';
+    } catch (e) {
+      return 'light';
+    }
+  }
+
+  function resolverTema(escolha) {
+    if (escolha === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return escolha;
+  }
+
+  function aplicarTemaResolvido(tema) {
+    document.documentElement.setAttribute('data-theme', tema);
+    try { localStorage.setItem('senai_tema_resolvido', tema); } catch (e) {}
+  }
+
+  function salvarEscolha(escolha) {
+    try { localStorage.setItem('senai_tema_escolha', escolha); } catch (e) {}
   }
 
   window.SENAI_aplicarCor = function () {
     var base = corEscolhida();
-    var escuro = temaAtual() === 'dark';
+    var escuro = temaResolvido() === 'dark';
     var el = document.documentElement;
     el.style.setProperty('--accent', base);
     el.style.setProperty('--accent-rgb', rgbTripla(base));
@@ -73,31 +104,43 @@
   };
 
   window.SENAI_aplicarTema = function () {
-    var pref = 'light';
-    try { pref = localStorage.getItem('senai_tema') || 'light'; } catch (e) { pref = 'light'; }
-    if (pref === 'light' && window.SENAI_loadConfig) {
-      try {
-        var cfg = SENAI_loadConfig();
-        if (cfg.temaEscuro === true || cfg.temaEscuro === 'true') pref = 'dark';
-      } catch (e) {}
-    }
-    document.documentElement.setAttribute('data-theme', pref === 'dark' ? 'dark' : 'light');
-    return temaAtual();
+    var escolha = temaEscolha();
+    var resolvido = resolverTema(escolha);
+    aplicarTemaResolvido(resolvido);
+    return resolvido;
   };
 
   window.SENAI_aplicarTemaCompleto = function () {
     window.SENAI_aplicarTema();
     window.SENAI_aplicarCor();
     atualizarBotoes();
+    atualizarThemeCards();
+  };
+
+  window.SENAI_definirTema = function (tema) {
+    if (tema !== 'light' && tema !== 'dark' && tema !== 'system') {
+      tema = 'light';
+    }
+    salvarEscolha(tema);
+    var resolvido = resolverTema(tema);
+    aplicarTemaResolvido(resolvido);
+    window.SENAI_aplicarCor();
+    atualizarBotoes();
+    atualizarThemeCards();
+    return resolvido;
   };
 
   window.SENAI_toggleTema = function () {
-    var novo = temaAtual() === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', novo);
-    try { localStorage.setItem('senai_tema', novo); } catch (e) {}
+    var escolhaAtual = temaEscolha();
+    var resolvidoAtual = temaResolvido();
+    var novoResolvido = resolvidoAtual === 'dark' ? 'light' : 'dark';
+    var novaEscolha = novoResolvido;
+    salvarEscolha(novaEscolha);
+    aplicarTemaResolvido(novoResolvido);
     window.SENAI_aplicarCor();
     atualizarBotoes();
-    return novo;
+    atualizarThemeCards();
+    return novoResolvido;
   };
 
   window.SENAI_setCor = function (hex) {
@@ -107,18 +150,15 @@
     atualizarBotoes();
   };
 
-  window.SENAI_CORES = PRESETS;
-  window.SENAI_COR_ATUAL = corEscolhida;
-
-  function svgTema(escuro) {
-    if (escuro) {
-      return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-    }
-    return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+  function atualizarThemeCards() {
+    var escolha = temaEscolha();
+    document.querySelectorAll('.config-theme-option').forEach(function (opt) {
+      opt.classList.toggle('active', opt.dataset.themeOpt === escolha);
+    });
   }
 
   function atualizarBotoes() {
-    var e = temaAtual() === 'dark';
+    var e = temaResolvido() === 'dark';
     document.querySelectorAll('[data-theme-btn]').forEach(function (btn) {
       btn.innerHTML = svgTema(!e) + '<span>' + (e ? 'Claro' : 'Escuro') + '</span>';
       btn.setAttribute('title', e ? 'Usar tema claro (Ctrl+Shift+D)' : 'Usar tema escuro (Ctrl+Shift+D)');
@@ -128,6 +168,14 @@
       btn.setAttribute('aria-label', e ? 'Tema claro' : 'Tema escuro');
       btn.setAttribute('title', e ? 'Tema claro' : 'Tema escuro');
     });
+    atualizarThemeCards();
+  }
+
+  function svgTema(escuro) {
+    if (escuro) {
+      return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    }
+    return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
   }
 
   function injetarBotoes() {
@@ -155,13 +203,32 @@
     atualizarBotoes();
   }
 
+  var mqlListener = function (e) {
+    if (temaEscolha() === 'system') {
+      var novo = e.matches ? 'dark' : 'light';
+      aplicarTemaResolvido(novo);
+      window.SENAI_aplicarCor();
+      atualizarBotoes();
+      atualizarThemeCards();
+    }
+  };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       injetarBotoes();
+      try {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', mqlListener);
+      } catch (e) {}
     });
   } else {
     injetarBotoes();
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', mqlListener);
+    } catch (e) {}
   }
+
+  window.SENAI_CORES = PRESETS;
+  window.SENAI_COR_ATUAL = corEscolhida;
 
   window.SENAI_aplicarTemaCompleto();
 })();

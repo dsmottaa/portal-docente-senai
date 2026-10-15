@@ -182,6 +182,9 @@
     <div class="modal-card modal-lg">
       <button type="button" class="modal-close" data-close-modal>&times;</button>
       <div class="modal-header">
+        <div class="modal-badge-icon blue">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
         <h2 id="subTurmaModalTitle">Nova Sub turma</h2>
         <p class="modal-subtitle">Crie um grupo e associe os alunos para filtrar, analisar e lançar presença por sub turma.</p>
       </div>
@@ -200,6 +203,20 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input type="text" id="subTurmaSearch" placeholder="Buscar aluno por nome, matrícula ou bancada..." autocomplete="off">
           </div>
+          <div class="subturma-actions">
+            <button type="button" class="btn-secondary btn-sm-inline subturma-action-btn" id="btnSubTurmaPrimeiraMetade" title="Seleciona a primeira metade dos alunos da turma">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="18" rx="1"></rect></svg>
+              1ª Metade
+            </button>
+            <button type="button" class="btn-secondary btn-sm-inline subturma-action-btn" id="btnSubTurmaSegundaMetade" title="Seleciona a segunda metade dos alunos da turma">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="14" y="3" width="7" height="18" rx="1"></rect></svg>
+              2ª Metade
+            </button>
+            <button type="button" class="btn-secondary btn-sm-inline subturma-action-btn" id="btnSubTurmaRestantes" title="Seleciona apenas alunos sem subturma atribuída">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Selecionar Restantes
+            </button>
+          </div>
           <div id="subTurmaAlunosPick" class="subturma-pick"></div>
         </div>
         <div class="modal-actions-row">
@@ -214,7 +231,21 @@
   <script src="../js/sidebar.js"></script>
 
   <script src="../js/data.js"></script>
+  <script src="../js/theme.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/confirm-modal.js"></script>
   <script src="../js/turma.js"></script>
+
+  <!-- Widget VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
 </body>
 </html>

@@ -1,9 +1,9 @@
-Ôªø<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configura√ß√µes | SENAI - Portal do Docente</title>
+  <title>ConfiguraÁıes | SENAI - Portal do Docente</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -38,22 +38,51 @@
     </aside>
 
     <main class="feature-main">
-      <div class="feature-header">
-        <div class="feature-title-group">
-          <div class="feature-icon-box amber">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          </div>
-          <div>
-            <h1 class="feature-page-title">Configura√ß√µes</h1>
-            <span class="feature-page-sub">Unidade, turma, template de avalia√ß√µes e conta</span>
+      <!-- Banner de Perfil -->
+      <div class="config-profile-banner">
+        <div class="config-profile-info">
+          <div class="config-profile-avatar" id="configAvatar">LN</div>
+          <div class="config-profile-text">
+            <h1 class="config-profile-title">Meu perfil</h1>
+            <p class="config-profile-sub">Atualize suas informaÁıes b·sicas de perfil. <span class="config-sparkle">?</span></p>
           </div>
         </div>
-        <button type="button" class="btn-primary" id="btnSalvarConfig">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></path><polyline points="7 3 7 8 15 8"></polyline></svg>
-          Salvar Altera√ß√µes
+        <button type="button" class="config-btn-alterar" id="btnAlterarSenha">
+          Alterar senha
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l-4.3 4.3a1 1 0 0 0 0 1.4 1 1 0 0 0 1.4 0L8.4 18.4a1 1 0 0 0 0-1.4 1 1 0 0 0-1.4 0z"></path><path d="M14.5 4.5l5 5L8 21H3v-5L14.5 4.5z"></path></svg>
         </button>
       </div>
 
+      <!-- SecÁ„o de Temas -->
+      <div class="feature-card config-themes-card">
+        <h3 class="config-themes-title">Temas</h3>
+        <p class="config-themes-sub">Personalize a aparÍncia do seu portal com o tema ideal.</p>
+        <div class="config-themes-grid">
+          <button type="button" class="config-theme-option" data-theme-opt="system">
+            <span class="config-theme-preview config-theme-system">
+              <span class="config-theme-preview-sidebar"></span>
+              <span class="config-theme-preview-content"></span>
+            </span>
+            <span class="config-theme-label">Sistema</span>
+          </button>
+          <button type="button" class="config-theme-option" data-theme-opt="light">
+            <span class="config-theme-preview config-theme-light">
+              <span class="config-theme-preview-sidebar"></span>
+              <span class="config-theme-preview-content"></span>
+            </span>
+            <span class="config-theme-label">Claro</span>
+          </button>
+          <button type="button" class="config-theme-option" data-theme-opt="dark">
+            <span class="config-theme-preview config-theme-dark">
+              <span class="config-theme-preview-sidebar"></span>
+              <span class="config-theme-preview-content"></span>
+            </span>
+            <span class="config-theme-label">Escuro</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Unidade e Turma -->
       <div class="feature-card">
         <h3>&#127963; Unidade e Turma</h3>
         <form id="formConfig" class="feature-form">
@@ -65,7 +94,7 @@
             </div>
             <div class="form-group">
               <label for="cfgCurso">Curso</label>
-              <input id="cfgCurso" type="text" placeholder="Ex.: T√©cnico em Mecatr√¥nica">
+              <input id="cfgCurso" type="text" placeholder="Ex.: TÈcnico em MecatrÙnica">
             </div>
           </div>
           <div class="form-row">
@@ -75,20 +104,20 @@
             </div>
             <div class="form-group">
               <label for="cfgDisciplina">Disciplina</label>
-              <input id="cfgDisciplina" type="text" placeholder="Ex.: Automa√ß√£o Industrial">
+              <input id="cfgDisciplina" type="text" placeholder="Ex.: AutomaÁ„o Industrial">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="cfgTurno">Turno</label>
               <select id="cfgTurno">
-                <option value="MANH√É">Manh√£</option>
+                <option value="MANH√">Manh„</option>
                 <option value="TARDE">Tarde</option>
                 <option value="NOITE">Noite</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="cfgCargaHoraria">Carga Hor√°ria</label>
+              <label for="cfgCargaHoraria">Carga Hor·ria</label>
               <select id="cfgCargaHoraria">
                 <option value="03H">03 horas</option>
                 <option value="04H">04 horas</option>
@@ -106,24 +135,26 @@
             <div class="form-group">
               <label for="cfgTema">Tema da interface</label>
               <select id="cfgTema">
-                <option value="light">Claro (padr√£o)</option>
+                <option value="light">Claro (padr„o)</option>
                 <option value="dark">Escuro</option>
               </select>
-              <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Voc√™ tamb√©m pode alternar rapidamente com <b>Ctrl + Shift + D</b>.</p>
+              <p style="font-size:12px;color:var(--text-muted);margin-top:4px">VocÍ tambÈm pode alternar rapidamente com <b>Ctrl + Shift + D</b>.</p>
             </div>
           </div>
         </form>
       </div>
 
+      <!-- Conta -->
       <div class="feature-card">
+        <h3>Conta</h3>
         <form id="formConta" class="feature-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="contaNome">Nome de exibi√ß√£o</label>
+              <label for="contaNome">Nome de exibiÁ„o</label>
               <input id="contaNome" type="text">
             </div>
             <div class="form-group">
-              <label for="contaMatricula">Matr√≠cula / Registro</label>
+              <label for="contaMatricula">MatrÌcula / Registro</label>
               <input id="contaMatricula" type="text">
             </div>
           </div>
@@ -134,15 +165,16 @@
             </div>
             <div class="form-group">
               <label for="contaSenhaNova">Nova senha</label>
-              <input id="contaSenhaNova" type="password" autocomplete="new-password" placeholder="M√≠nimo 6 caracteres">
+              <input id="contaSenhaNova" type="password" autocomplete="new-password" placeholder="MÌnimo 6 caracteres">
             </div>
           </div>
         </form>
       </div>
 
+      <!-- Zona de Dados -->
       <div class="feature-card">
         <h3>Zona de Dados</h3>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Exporte um backup (JSON) da turma atual ou utilize os controles de demonstra√ß√£o. N√£o h√° como desfazer o reset.</p>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Exporte um backup (JSON) da turma atual ou utilize os controles de demonstraÁ„o. N„o h· como desfazer o reset.</p>
         <div class="report-actions">
           <button type="button" class="btn-secondary" id="btnExportarTurma">Exportar Dados (JSON)</button>
           <button type="button" class="btn-secondary" id="btnImportarTurma">Importar Backup (JSON)</button>
@@ -156,9 +188,10 @@
     </main>
   </div>
 
-  <div class="feature-card" id="cfgClassroomCard">
+      <!-- Google Classroom -->
+      <div class="feature-card" id="cfgClassroomCard">
         <h3>Google Classroom</h3>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Integre com o Google Classroom para carregar atividades reais na Turma Virtual. Requer credenciais OAuth (arquivo <code>classroom-config.json</code> ou vari√°veis de ambiente <code>GCLOUD_CLIENT_ID</code>/<code>GCLOUD_CLIENT_SECRET</code>).</p>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Integre com o Google Classroom para carregar atividades reais na Turma Virtual. Requer credenciais OAuth (arquivo <code>classroom-config.json</code> ou vari·veis de ambiente <code>GCLOUD_CLIENT_ID</code>/<code>GCLOUD_CLIENT_SECRET</code>).</p>
         <div style="font-size:13px;margin-bottom:12px">
           Status: <strong id="cfgClassroomStatus">Verificando...</strong>
         </div>
@@ -178,8 +211,22 @@
   <script src="../js/sidebar.js"></script>
 
   <script src="../js/data.js"></script>
+  <script src="../js/theme.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/classroom.js"></script>
+  <script src="../js/confirm-modal.js"></script>
   <script src="../js/configuracao.js"></script>
+
+  <!-- Widget VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
 </body>
 </html>

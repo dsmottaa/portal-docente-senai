@@ -62,22 +62,29 @@
   <div id="modalNovoComunicado" class="modal-backdrop" aria-hidden="true">
     <div class="modal-card">
       <button type="button" class="modal-close" data-close-modal>&times;</button>
-      <h2 class="modal-title">Novo comunicado</h2>
-      <p class="modal-subtitle">Os avisos nacionais são compartilhados com todas as unidades do portal e sincronizados no servidor.</p>
-      <div class="mat-field">
-        <label for="comuTitulo">Título</label>
-        <input type="text" id="comuTitulo" class="modal-input-light" placeholder="Ex.: Reunião pedagógica de fechamento de bimestre" autocomplete="off">
+      <div class="modal-header">
+        <div class="modal-badge-icon blue">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <h2>Novo comunicado</h2>
+        <p class="modal-subtitle">Os avisos nacionais são compartilhados com todas as unidades do portal e sincronizados no servidor.</p>
       </div>
-      <div class="mat-field">
-        <label for="comuConteudo">Mensagem</label>
-        <textarea id="comuConteudo" class="modal-textarea-light" rows="5" placeholder="Descreva o aviso, data, horários, prazos e público-alvo..."></textarea>
-      </div>
-      <div class="mat-field">
-        <label for="comuVisibilidade">Visibilidade</label>
-        <select id="comuVisibilidade" class="modal-input-light">
-          <option value="todas_unidades">Nacional (todas as unidades)</option>
-          <option value="turma">Somente a minha unidade</option>
-        </select>
+      <div class="modal-form">
+        <div class="form-field-group">
+          <label class="modal-label" for="comuTitulo">Título</label>
+          <input type="text" id="comuTitulo" class="modal-input-light" placeholder="Ex.: Reunião pedagógica de fechamento de bimestre" autocomplete="off">
+        </div>
+        <div class="form-field-group">
+          <label class="modal-label" for="comuConteudo">Mensagem</label>
+          <textarea id="comuConteudo" class="modal-textarea-light" rows="5" placeholder="Descreva o aviso, data, horários, prazos e público-alvo..."></textarea>
+        </div>
+        <div class="form-field-group">
+          <label class="modal-label" for="comuVisibilidade">Visibilidade</label>
+          <select id="comuVisibilidade" class="modal-input-light">
+            <option value="todas_unidades">Nacional (todas as unidades)</option>
+            <option value="turma">Somente a minha unidade</option>
+          </select>
+        </div>
       </div>
       <div class="modal-actions-row">
         <button type="button" class="btn-subtle" data-close-modal>Cancelar</button>
@@ -90,7 +97,21 @@
   <script src="../js/sidebar.js"></script>
 
   <script src="../js/data.js"></script>
+  <script src="../js/theme.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/confirm-modal.js"></script>
   <script src="../js/mural.js"></script>
+
+  <!-- Widget VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
 </body>
 </html>

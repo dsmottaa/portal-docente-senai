@@ -319,14 +319,75 @@
     }).join('');
   }
 
+  function getAlunosSemSubTurma() {
+    const subs = SENAI_loadSubTurmas() || [];
+    const alunosComSubTurma = new Set();
+    subs.forEach(sub => (sub.alunoIds || []).forEach(id => alunosComSubTurma.add(Number(id))));
+    return students.filter(s => !alunosComSubTurma.has(Number(s.id)));
+  }
+
+  function bindSubTurmaActionButtons() {
+    const btnPrimeira = document.getElementById('btnSubTurmaPrimeiraMetade');
+    const btnSegunda = document.getElementById('btnSubTurmaSegundaMetade');
+    const btnRestantes = document.getElementById('btnSubTurmaRestantes');
+
+    if (btnPrimeira) {
+      btnPrimeira.onclick = () => {
+        const metade = Math.ceil(students.length / 2);
+        const ids = students.slice(0, metade).map(s => s.id);
+        setCheckboxes(ids);
+      };
+    }
+    if (btnSegunda) {
+      btnSegunda.onclick = () => {
+        const metade = Math.ceil(students.length / 2);
+        const ids = students.slice(metade).map(s => s.id);
+        setCheckboxes(ids);
+      };
+    }
+    if (btnRestantes) {
+      btnRestantes.onclick = () => {
+        const ids = getAlunosSemSubTurma().map(s => s.id);
+        setCheckboxes(ids);
+      };
+    }
+  }
+
+  function setCheckboxes(ids) {
+    const idsSet = new Set(ids.map(Number));
+    document.querySelectorAll('#subTurmaAlunosPick .subturma-aluno-check').forEach(cb => {
+      cb.checked = idsSet.has(Number(cb.value));
+    });
+  }
+
+  function getAlunosSemSubTurma() {
+    const subs = SENAI_loadSubTurmas() || [];
+    const alunosComSubTurma = new Set();
+    subs.forEach(sub => (sub.alunoIds || []).forEach(id => alunosComSubTurma.add(Number(id))));
+    return students.filter(s => !alunosComSubTurma.has(Number(s.id)));
+  }
+
   function openSubTurmaForm(sub) {
     editingSubTurmaId = sub ? sub.id : null;
+    const isNew = !sub;
     document.getElementById('subTurmaModalTitle').textContent = sub ? `Editar Sub ${sub.nome}` : 'Nova Sub turma';
     document.getElementById('inputSubTurmaNome').value = sub ? sub.nome || '' : '';
     document.getElementById('inputSubTurmaDesc').value = sub ? sub.descricao || '' : '';
     document.getElementById('subTurmaSearch').value = '';
-    renderSubTurmaPick(sub ? sub.alunoIds : []);
+
+    // Se criando nova subturma e já existem outras, auto-seleciona os alunos restantes
+    let initialSelection = sub ? sub.alunoIds : [];
+    if (isNew) {
+      const existentes = SENAI_loadSubTurmas() || [];
+      if (existentes.length > 0) {
+        const restantes = getAlunosSemSubTurma();
+        initialSelection = restantes.map(s => s.id);
+      }
+    }
+
+    renderSubTurmaPick(initialSelection);
     openModal('modalSubTurma');
+    bindSubTurmaActionButtons();
     setTimeout(() => document.getElementById('inputSubTurmaNome').focus(), 60);
   }
 
@@ -357,15 +418,22 @@
   }
 
   function delSubTurma(sub) {
-    if (!confirm(`Excluir a sub turma "Sub ${sub.nome}"? Os alunos NÃO serão removidos do cadastro.`)) return;
-    SENAI_deleteSubTurma(sub.id);
-    if (String(activeSubTurmaId) === String(sub.id)) {
-      activeSubTurmaId = null;
-      SENAI_switchSubTurma(null);
-    }
-    playTone(240, 'square', 0.1, 0.04);
-    showToast('Sub turma excluída.', 'info', 2500);
-    renderAll();
+    SENAI_showConfirm({
+      title: 'Excluir sub turma',
+      message: `Excluir a sub turma "Sub ${sub.nome}"? Os alunos NÃO serão removidos do cadastro.`,
+      variant: 'danger',
+      confirmText: 'Excluir',
+      onConfirm: () => {
+        SENAI_deleteSubTurma(sub.id);
+        if (String(activeSubTurmaId) === String(sub.id)) {
+          activeSubTurmaId = null;
+          SENAI_switchSubTurma(null);
+        }
+        playTone(240, 'square', 0.1, 0.04);
+        showToast('Sub turma excluída.', 'info', 2500);
+        renderAll();
+      }
+    });
   }
 
   function renderAll() { rel(); renderSubTurmaBar(); renderSubTurmaCards(); renderTable(); }
@@ -453,11 +521,18 @@
   }
 
   function excluirAluno(student) {
-    if (!confirm(`Excluir o aluno "${student.name}"? Essa ação não pode ser desfeita.`)) return;
-    SENAI_deleteStudent(student.id);
-    playTone(240, 'square', 0.1, 0.04);
-    showToast('Aluno excluído.', 'info', 2500);
-    renderAll();
+    SENAI_showConfirm({
+      title: 'Excluir aluno',
+      message: `Excluir o aluno "${student.name}"? Essa ação não pode ser desfeita.`,
+      variant: 'danger',
+      confirmText: 'Excluir',
+      onConfirm: () => {
+        SENAI_deleteStudent(student.id);
+        playTone(240, 'square', 0.1, 0.04);
+        showToast('Aluno excluído.', 'info', 2500);
+        renderAll();
+      }
+    });
   }
 
   // --- FORM DE AVALIAÇÕES ---

@@ -4,7 +4,7 @@
  * network-first para as APIs (/api/*) para nunca perder sincronização.
  * Fontes do Google: cache-first com revalidação (funciona offline após 1ª visita).
  */
-const CACHE = 'portal-senai-v5';
+const CACHE = 'portal-senai-v6';
 const CORE = [
   '/index.html',
   '/pages/dashboard.html',

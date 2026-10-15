@@ -157,21 +157,42 @@
 
   // --- ZONA DE DADOS ---
   function resetarDadosAmostra() {
-    if (!confirm('Restaurar os dados de amostra? Alunos, avaliações, chamadas e ocorrências atuais serão substituídos.')) return;
-    SENAI_clearAllData();
-    playTone(650, 'sine', 0.1, 0.04);
-    showToast('Dados de amostra restaurados!', 'success', 3000);
-    setTimeout(() => window.location.reload(), 800);
+    SENAI_showConfirm({
+      title: 'Restaurar dados de amostra',
+      message: 'Restaurar os dados de amostra? Alunos, avaliações, chamadas e ocorrências atuais serão substituídos.',
+      variant: 'warning',
+      confirmText: 'Restaurar',
+      onConfirm: () => {
+        SENAI_clearAllData();
+        playTone(650, 'sine', 0.1, 0.04);
+        showToast('Dados de amostra restaurados!', 'success', 3000);
+        setTimeout(() => window.location.reload(), 800);
+      }
+    });
   }
 
   function apagarTudo() {
-    if (!confirm('ISSO APAGARÁ TODOS OS DADOS do sistema, inclusive usuários. Deseja continuar?')) return;
-    if (!confirm('Confirma a exclusão definitiva de TODOS os dados?')) return;
-    [SENAI_USERS_KEY, SENAI_SESSION_KEY, SENAI_BACKUP_KEY].forEach(k => {
-      try { localStorage.removeItem(k); } catch (e) {}
+    SENAI_showConfirm({
+      title: 'Apagar TODOS os dados',
+      message: 'ISSO APAGARÁ TODOS OS DADOS do sistema, inclusive usuários. Deseja continuar?',
+      variant: 'danger',
+      confirmText: 'Apagar tudo',
+      onConfirm: () => {
+        SENAI_showConfirm({
+          title: 'Confirmar exclusão definitiva',
+          message: 'Confirma a exclusão definitiva de TODOS os dados?',
+          variant: 'danger',
+          confirmText: 'Sim, apagar tudo',
+          onConfirm: () => {
+            [SENAI_USERS_KEY, SENAI_SESSION_KEY, SENAI_BACKUP_KEY].forEach(k => {
+              try { localStorage.removeItem(k); } catch (e) {}
+            });
+            SENAI_clearAllData();
+            window.location.href = '../index.html';
+          }
+        });
+      }
     });
-    SENAI_clearAllData();
-    window.location.href = '../index.html';
   }
 
   // --- BACKUP / RESTORE POR TURMA ---
@@ -262,10 +283,17 @@
   if (btnCfgClassroomRevoke) {
     btnCfgClassroomRevoke.addEventListener('click', async () => {
       if (!window.SENAI_Classroom) return;
-      if (!confirm('Desconectar do Google Classroom? As atividades reais deixarão de ser exibidas.')) return;
-      await SENAI_Classroom.revoke();
-      showToast('Google Classroom desconectado.', 'info', 2500);
-      window.location.reload();
+      SENAI_showConfirm({
+        title: 'Desconectar Google Classroom',
+        message: 'Desconectar do Google Classroom? As atividades reais deixarão de ser exibidas.',
+        variant: 'warning',
+        confirmText: 'Desconectar',
+        onConfirm: async () => {
+          await SENAI_Classroom.revoke();
+          showToast('Google Classroom desconectado.', 'info', 2500);
+          window.location.reload();
+        }
+      });
     });
   }
 
@@ -281,8 +309,56 @@
     }
   }
 
+  // --- TEMA CARDS ---
+  function initThemeCards() {
+    const options = document.querySelectorAll('.config-theme-option');
+    if (!options.length) return;
+
+    options.forEach(opt => {
+      opt.addEventListener('click', () => {
+        const choice = opt.dataset.themeOpt;
+        if (window.SENAI_definirTema) {
+          window.SENAI_definirTema(choice);
+        }
+      });
+    });
+  }
+
+  // --- BOTÃO ALTERAR SENHA ---
+  function initAlterarSenha() {
+    const btn = document.getElementById('btnAlterarSenha');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const formConta = document.getElementById('formConta');
+      if (formConta) {
+        formConta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const senhaAtual = document.getElementById('contaSenhaAtual');
+        if (senhaAtual) senhaAtual.focus();
+      }
+    });
+  }
+
+  // --- AVATAR DO PERFIL ---
+  function initAvatar() {
+    const session = SENAI_getSession();
+    if (!session) return;
+    const avatarEl = document.getElementById('configAvatar');
+    if (avatarEl) {
+      const initials = (session.name || '? ?')
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(n => n[0])
+        .join('')
+        .toUpperCase();
+      avatarEl.textContent = initials;
+    }
+  }
+
   // --- INIT ---
   carregarCampos();
+  initThemeCards();
+  initAlterarSenha();
+  initAvatar();
 
   const session = SENAI_getSession();
   if (session) {

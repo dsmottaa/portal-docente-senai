@@ -174,13 +174,20 @@ document.addEventListener('DOMContentLoaded', () => {
         delBtn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (!confirm(`Excluir o registro do dia ${SENAI_formatDateKey(entry.date)}?`)) return;
-          SENAI_deleteAula(entry.id);
-          playTone(240, 'square', 0.1, 0.04);
-          entries = SENAI_loadAulas();
-          renderStats();
-          renderEntries();
-          showToast('Registro excluído do diário.', 'info', 2200);
+          SENAI_showConfirm({
+            title: 'Excluir registro',
+            message: `Excluir o registro do dia ${SENAI_formatDateKey(entry.date)}?`,
+            variant: 'danger',
+            confirmText: 'Excluir',
+            onConfirm: () => {
+              SENAI_deleteAula(entry.id);
+              playTone(240, 'square', 0.1, 0.04);
+              entries = SENAI_loadAulas();
+              renderStats();
+              renderEntries();
+              showToast('Registro excluído do diário.', 'info', 2200);
+            }
+          });
         });
       }
 
